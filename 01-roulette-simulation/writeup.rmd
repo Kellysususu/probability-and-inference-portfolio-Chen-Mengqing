@@ -1,0 +1,326 @@
+---
+title: "Title of Blog Post Deliverable"
+author: 'Kelly Chen'
+date: "`r format(Sys.time(), '%B %d, %Y')`"
+output:
+  html_document:
+    code_folding: hide
+    toc: yes
+    number_sections: yes
+    toc_depth: 3
+    toc_float: yes
+---
+
+```{r global options, include = FALSE}
+knitr::opts_chunk$set(echo=TRUE, warning=FALSE, message=FALSE, cache=TRUE)
+```
+
+ 
+
+# Introduction 
+The purpose of this document is to show if the Martingale strategy is effective during the roulette play. We would simulate the situation to see if the final earnings are always positive because of the strategy.
+
+
+## Background
+For the roulette play, there are 38 pockets of which 2 are green, 18 are red, and 18 are black. The payout for a bet on black (or red) is $1 for each $1 wagered. This means that if a gambler bets $1 on black and the randomly selected pocket is black, then the gambler will get the original $1 wager and an additional $1 as winnings.
+
+# Methods
+```{r}
+library(dplyr)
+```
+
+```{r}
+#' A single play of the Martingale strategy
+#'
+#' Takes a state list, spins the roulette wheel, returns the state list with updated values (for example, budget, plays, etc)
+#' @param state A list with the following entries: 
+#'   B              number, the budget
+#'   W              number, the budget threshold for successfully stoping
+#'   L              number, the maximum number of plays 
+#'   M              number, the casino wager limit
+#'   plays          integer, the number of plays executed
+#'   previous_wager number, the wager in the previous play (0 at first play)
+#'   previous_win   TRUE/FALSE, indicator if the previous play was a win (TRUE at first play)
+#' @return The updated state list
+one_play <- function(state){
+  
+    # Wager
+    proposed_wager <- ifelse(state$previous_win, 1, 2*state$previous_wager)
+    wager <- min(proposed_wager, state$M, state$B)
+    
+    # Spin of the wheel
+    red <- rbinom(1,1,18/38)
+    
+    # Update state
+    state$plays <- state$plays + 1
+    state$previous_wager <- wager
+    if(red){
+      # WIN
+      state$B <- state$B + wager
+      state$previous_win <- TRUE
+    }else{
+      # LOSE
+      state$B <- state$B - wager
+      state$previous_win <- FALSE
+    }
+  state
+}
+
+
+#' Stopping rule
+#'
+#' Takes the state list and determines if the gambler has to stop
+#' @param state A list.  See one_play
+#' @return TRUE/FALSE
+stop_play <- function(state){
+  if(state$B <= 0) return(TRUE)
+  if(state$plays >= state$L) return(TRUE)
+  if(state$B >= state$W) return(TRUE)
+  FALSE
+}
+
+
+#' Play roulette to either bankruptcy, success, or play limits
+#'
+#' @param B number, the starting budget
+#' @param W number, the budget threshold for successfully stoping
+#' @param L number, the maximum number of plays 
+#' @param M number, the casino wager limit
+#' @return A vector of budget values calculated after each play.
+one_series <- function(
+    B = 200
+  , W = 300
+  , L = 1000
+  , M = 100
+){
+
+  # initial state
+  state <- list(
+    B = B
+  , W = W
+  , L = L
+  , M = M
+  , plays = 0
+  , previous_wager = 0
+  , previous_win = TRUE
+  )
+  
+  # vector to store budget over series of plays
+  budget <- rep(NA, L)
+  
+  # For loop of plays
+  for(i in 1:L){
+    new_state <- state %>% one_play
+    budget[i] <- new_state$B
+    if(new_state %>% stop_play){
+      return(budget[1:i])
+    }
+    state <- new_state
+  }
+  budget    
+}
+
+# helper function
+get_last <- function(x) x[length(x)] 
+
+
+# Simulation
+walk_out_money <- rep(NA, 10000)
+for(j in seq_along(walk_out_money)){
+  walk_out_money[j] <- one_series(B = 200, W = 300, L = 1000, M = 100) %>% get_last
+}
+
+# Walk out money distribution
+hist(walk_out_money, breaks = 100)
+
+# Estimated probability of walking out with extra cash
+mean(walk_out_money > 200)
+
+# Estimated earnings
+mean(walk_out_money - 200)
+```
+```{r}
+#This is how I used computer simulation to calculate the average earnings of a gambler that uses this strategy. 
+
+#simulation run for wal_out_money [one series]
+example = one_series()
+
+#total earning after play
+earnings = example-200
+plays = seq(1,length(earnings),1)
+
+#scatterplot for number of plays and earnings
+plot(plays, earnings)
+
+```
+From the plot, we can see that as the number of plays increase, the more likely the player would lose or have a negative balance when ending the play.
+
+```{r}
+# Simulation 1 for changing starting budget parameter(B)
+
+# Assume the starting budget is $10, each round we would add $20 for simulation. The maximum budget is $290. Below are the definition and variables needed for the simulation.
+
+maxB = 290
+starting_budget = seq(10,maxB,20)
+walk_out_money_final <- rep(NA, length(starting_budget))
+walk_out_money <- rep(NA, 10000)
+
+# Simulation for changing starting budget. I used for-loop to simulate each round of different starting budget which increments $20 per round.
+
+for(incrementB in seq_along(walk_out_money_final)){
+  
+  for(j in seq_along(walk_out_money)){
+    walk_out_money[j] <- one_series(B = starting_budget[incrementB], W = 300, L = 1000, M = 100) %>% get_last
+  }
+  walk_out_money_final[incrementB] = mean(walk_out_money - starting_budget[incrementB])
+}
+walk_out_money_final
+  
+# Scatterplot indicating the relationship between starting budget and the final walk out money balance
+plot(starting_budget,walk_out_money_final)
+
+```
+From the simulation, we can know that the final walk out money is decreasing when below $150 starting budget, with starting budget more than $150, we are more likely to have a increasing walkout money balance. However, the walkout money balance is always below 0.
+```{r}
+# Simulation 2 for changing budget threshold for successfully stopping(W)
+
+# Assume the starting budget threshold is $200, each round we would add $50 for simulation. The maximum budget threshold is $500. Below are the definition and variables needed for the simulation.
+
+maxW = 500
+budget_threshold = seq(200,maxW,50)                          
+walk_out_money_final <- rep(NA, length(budget_threshold))
+walk_out_money <- rep(NA, 10000)
+
+# Simulation for changing winning budget threshold. I used for-loop to simulate each round of different budget threshold which increments $50 per round.
+
+for(incrementB in seq_along(walk_out_money_final)){
+  
+  for(j in seq_along(walk_out_money)){
+    walk_out_money[j] <- one_series(B = 200, W = budget_threshold[incrementB], L = 1000, M = 100) %>% get_last
+  }
+  walk_out_money_final[incrementB] = mean(walk_out_money - 200)
+}
+walk_out_money_final
+  
+# Scatterplot indicating the relationship between budget threshold for successfully stopping and the final walk out money balance
+plot(budget_threshold,walk_out_money_final)
+
+```
+From the simulation, we can know that the final walk-out money balance is decreasing with the increase of the budget threhold for successfully stopping.
+
+```{r}
+# Simulation 3 for changing maximum number of plays(L)
+
+# Assume the starting maximum number of plays is 500, each round we would add 100 for simulation. The maximum number of play is 1200. Below are the definition and variables needed for the simulation.
+
+maxL = 1200
+number_of_plays = seq(500,maxL,100)                          
+walk_out_money_final <- rep(NA, length(number_of_plays))
+walk_out_money <- rep(NA, 10000)
+
+# Simulation for changing maximum number of play. I used for-loop to simulate each round of different play number which increments 100 per round.
+
+for(incrementB in seq_along(walk_out_money_final)){
+  
+  for(j in seq_along(walk_out_money)){
+    walk_out_money[j] <- one_series(B = 200, W = 300, L = number_of_plays[incrementB], M = 100) %>% get_last
+  }
+  walk_out_money_final[incrementB] = mean(walk_out_money - 200)
+}
+walk_out_money_final
+  
+# Scatterplot indicating the relationship between maximum number of play for successfully stopping and the final walk out money balance
+plot(number_of_plays,walk_out_money_final)
+
+```
+From the simulation, we can know that the number of plays does not have any relationship with the final walk-out money.
+
+```{r}
+# Simulation 4 for changing Casino Wager Limit(M)
+
+# Assume the starting casino wager limit is $300, each round we would add $50 for simulation. The maximum casino wager limit is $300. Below are the definition and variables needed for the simulation.
+
+maxM = 300
+casino_wager_limit = seq(100,maxM,50)                          
+walk_out_money_final <- rep(NA, length(casino_wager_limit))
+walk_out_money <- rep(NA, 10000)
+
+# Simulation for changing casino wager limit. I used for-loop to simulate each round of different wager number which increments 100 per round.
+
+for(incrementB in seq_along(walk_out_money_final)){
+  
+  for(j in seq_along(walk_out_money)){
+    walk_out_money[j] <- one_series(B = 200, W = 300, L =1000, M = casino_wager_limit[incrementB]) %>% get_last
+  }
+  walk_out_money_final[incrementB] = mean(walk_out_money - 200)
+}
+walk_out_money_final
+  
+# Scatterplot indicating the relationship between casino wager limit and the final walk out money balance
+plot(casino_wager_limit,walk_out_money_final)
+
+```
+From the plot, we can know that the casino wager limit does not have any relationship with the final walk out money.
+```{r}
+#modify the one_series function to return the number of stop play each time when running the simulation
+one_series_avg_plays <- function(
+    B = 200
+  , W = 300
+  , L = 1000
+  , M = 100
+){
+
+  # initial state
+  state <- list(
+    B = B
+  , W = W
+  , L = L
+  , M = M
+  , plays = 0
+  , previous_wager = 0
+  , previous_win = TRUE
+  )
+  
+  # vector to store budget over series of plays
+  budget <- rep(NA, L)
+  
+  # For loop of plays
+  for(i in 1:L){
+    new_state <- state %>% one_play
+    budget[i] <- new_state$B
+    if(new_state %>% stop_play){
+      return(i)
+    }
+    state <- new_state
+  }
+  i    
+}
+
+
+# Simulation
+walk_out_plays <- rep(NA, 10000)
+for(j in seq_along(walk_out_plays)){
+  walk_out_plays[j] <- one_series_avg_plays(B = 200, W = 300, L = 1000, M = 100) %>% get_last
+}
+
+# Walk out play distribution
+hist(walk_out_plays, breaks = 100)
+
+# Average number of walk_out_plays
+mean(walk_out_plays)
+
+```
+From the histogram, we can know that the average number of plays needed for this simulation is 203.
+
+
+# Results and Conclusions
+From the simulation we can know that changing one parameter sometimes will have an impact on the result. For instance, changing the budget threshold or changing the starting budget limit will have a direct impact on the final walk-out money. There is no impact on the result if changing the wager limit of the number of plays. The average number of plays needed for the simulation is 203 plays.
+
+# Limitations
+There are some limitations related to the simulation because the sequence we use does not reach a valid sample size to reach a persuasive result. It also just an indicator of an average expected value instead of the direct indicator of the result. There are also other indicators that could impact the final walk-out money balance.
+
+.
+
+
+
+
