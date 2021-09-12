@@ -1,0 +1,65 @@
+---
+title: "Monte-carlo-error"
+author: "Kelly Chen"
+date: "9/12/2021"
+output: html_document
+---
+
+# Importance of the concepts 
+The concepts are important because simluation can only generate an approximate answer while we are not sure about the degree of error in quantity. Through measuring the error, we can know at what rate or what circumstance could the simulation generate a more reliable result.
+
+# Key Vocabulary terms
+Absolute error is an difference between the measured value and an actual value.
+
+Relative error is a measure of precision, and it is the ratio of the absolute error to the measurement being taken.
+
+```{r}
+#define variable
+
+table<-expand.grid(
+  N_list=2^c(2:15)
+, P=c(0.01,0.05,0.10,0.25,0.50)
+, abs_error=NA
+, rela_error=NA
+, KEEP.OUT.ATTRS = FALSE
+)
+
+```
+```{r}
+# estimate absolute error and relative error for simulation
+r<-10000
+for (i in 1:nrow(table)){
+  prob<-table$P[i]
+  n<- table$N_list[i]
+  esti_prob<-rbinom(r,n,prob)/n
+  table[i,'abs_error']<-mean(abs(esti_prob-prob))
+  table[i,'rela_error']<-mean(abs(esti_prob-prob)/prob)
+}
+```
+
+# Plot
+
+## Plot for Absolute Error
+```{r}
+library(ggplot2)
+True_Probability<-as.factor(table$P)
+
+ggplot(table, aes(N_list, abs_error, color =True_Probability)) +geom_line() + geom_point()+ coord_trans(x='log10')+labs(x='N log(10) scale',y='Absolute Error')+scale_x_continuous(breaks=table$N_list)
+```
+
+
+
+From the plot, we can see that as the number of simulation increases, the absolute error becomes smaller. The larger the true probability is, the steeper the curve would be, which indicates the error rate between each trial has more difference when the simulation round is fewer.
+
+## Plot for Relative Error
+```{r}
+True_Probability<-as.factor(table$P)
+
+ggplot(table, aes(N_list, rela_error, color =True_Probability)) +geom_line() + geom_point()+ coord_trans(x='log10')+labs(x='N log(10) scale',y='Relative Error')+scale_x_continuous(breaks=table$N_list)
+
+```
+
+
+
+From the plot, we can see that as the number of simulation increases, the relative error becomes smaller. The larger the true probability is, the steeper the curve would be, which indicates the error rate between each trial has more difference when the simulation round is fewer.
+
