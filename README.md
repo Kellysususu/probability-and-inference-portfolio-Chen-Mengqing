@@ -7,3 +7,6 @@ file:///D:/Document%20Projects/ds%205620-Probability%20and%20Statistical/probabi
 
 02-monte-carlo:
 file:///D:/Document%20Projects/ds%205620-Probability%20and%20Statistical/probability%20portfolio/probability-and-inference-portfolio-Chen-Mengqing/02-monte-carlo-error/monte-carlo-error.html
+
+02b-interview-question:
+https://github.com/Kellysususu/probability-and-inference-portfolio-Chen-Mengqing/tree/master/02b-interview-question
