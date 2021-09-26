@@ -1,0 +1,143 @@
+---
+title: "writeup"
+author: "Kelly Chen"
+date: "9/25/2021"
+output: html_document
+---
+
+
+
+## Introduction
+
+The world series is a best-of-7 match-up between the champions of the American and National Leagues of Major League Baseball. This document is to analyze and explain the probability calculations related to world series.
+
+## Default Settings
+
+Suppose that the Braves and the Yankees are teams competing in the World Series.
+Suppose that in any given game, the probability that the Braves win is P and the probability that the Yankees win is 1-P. 
+
+## Question 1
+
+What is the probability that the Braves win the World Series given that P=0.55?
+```{r}
+library(ggplot2)
+library(dplyr)
+#There are 7 teams in the game, so the total match Braves needed is 7 games, and to win the world series, Braves needs to win at least 4 games.
+
+#since pbinom produces the at most 3 games winning probability, we need to subtract that probability to get the result of winning at least 4 games probability.
+1-pbinom(3,7,0.55)
+```
+Answer: The probability that the Braves win the World Series given P=0.55 is 0.6082878.
+
+## Question 2
+
+What is the probability that the Braves win the World Series given that P=x?
+```{r}
+#assume p is a random probability between 0-1. Here we take 51 values of P to run the simulation to test the probability of Braves wins the world series.
+p2<-seq(0,1,0.02)
+p_win<-rep(NA,100)
+
+#Simulation
+for (i in seq_along(p2)){
+  p_win[i]<- 1-pbinom(3,7,p2[i])
+}
+#remove na values in the p_win
+p_win<-na.omit(p_win)
+
+#plot p2 and p_win
+plot(p2,p_win,xlab='Probability of the Braves winning a head-to-head matchup',ylab='Pr(Win World Series',type='l',main='Probability of winning the World Series')
+```
+
+## Question 3
+
+Suppose one could change the World Series to be best-of-9 or some other best-of-X series. What is the shortest series length so that P(Braves win World Series|P=.55)≥0.8
+
+```{r}
+#set the x value for best of x series, we set the maximum value of x to 100.
+best_x<-seq(1,999,2)
+p_win_1<-rep(NA,100)
+
+#simulation
+for (i in seq_along(best_x)){
+  best_cal<-ceiling(best_x[i]/2)
+  p_win_1[i]<- 1-pbinom(best_cal-1,best_x[i],0.55)
+} 
+
+#check p_win_1 value
+p_win_1<-na.omit(p_win_1)
+
+#create data frame for the two variables
+best_data<-data.frame(number_of_series=best_x,win_probability=p_win_1)
+
+#filter winning probability larger than 0.8
+best_data %>%
+  filter(win_probability>=0.8) %>%
+  filter(win_probability==min(win_probability))
+
+```
+Answer: The shortest number of series needed is 71.
+
+## Question 4
+
+What is the shortest series length so that P(Braves win World Series|P=x)≥0.8? This will be a figure (see below) with PB on the x-axis and series length is the y-axis.
+
+```{r}
+
+#set the x value for best of x series, we set the maximum value of x to 100.
+
+best_x<-seq(3,9999,2)
+p_x<-seq(0.51,1,0.01)
+series_length<-rep(NA,length(p_x))
+
+
+#simulation
+#Each time when we run the simulation, we keep a record of shortest series length for each Pb.
+
+for (i in seq_along(p_x)){
+  for (j in seq_along(best_x)){
+  best_cal<-ceiling(best_x[j]/2)
+  p_win_1<- 1-(pbinom(best_cal-1,best_x[j],p_x[i]))
+  if (p_win_1>=0.8){
+    shortest<-best_x[j]
+    break}
+  }
+  series_length[i]<-shortest}
+
+#Remove na values of series_length
+series_length<-na.omit(series_length)
+
+#Plot the relationship between Pb and shortest series length.
+plot(x=p_x,y=series_length,type='l',xlab='Probability of the Braves winning a head-to-head matchup',ylab='Series Length',main='Short series so that P(Win WS given p)>=0.8')
+
+```
+
+## Question 5
+
+Calculate P(Pb=0.55|Braves win World Series in 7 games) under the assumption that either Pb=0.55 or Pb=0.45. Explain your solution.
+
+We would utilize Bayes rule and the law of total probability to calculate the problem. We know that **P(A|B)=P(B|A)*P(A)/P(B)**
+In this problem, we set P(A) as the probability of Pb=0.55, which is P(Pb=0.55).
+We set P(B) as the probability of Braves win world series in 7 games.
+
+Since Pb is either 0.55 or 0.45, so the **P(A)=P(Pb=0.55)=0.5**.
+Since there are only two conditions where Pb=0.45 or Pb=0.55, so the total probability of winning the world series should be an average of the two condition.
+```{r}
+
+p_win_0.55<-1-pbinom(3,7,0.55)
+p_win_0.45<-1-pbinom(3,7,0.45)
+
+
+p_total_win<-(p_win_0.55+p_win_0.45)/2
+p_total_win
+```
+After calculation, we can know that the **P(B)=total probability of winning the world series=0.5**
+
+From question 1, we know that **P(B|A)=P(winning the world series|p=0.55)=0.6082878**
+```{r}
+p_a<-0.5
+p_b<-0.5
+p_b_a<-0.6082878
+p_final<-p_b_a*p_a/p_b
+p_final
+```
+Answer: The probability for the problem is 0.6082878.
