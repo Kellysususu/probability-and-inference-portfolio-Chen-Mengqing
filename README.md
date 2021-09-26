@@ -10,3 +10,6 @@ file:///D:/Document%20Projects/ds%205620-Probability%20and%20Statistical/probabi
 
 02b-interview-question:
 https://github.com/Kellysususu/probability-and-inference-portfolio-Chen-Mengqing/tree/master/02b-interview-question
+
+03-discrete-probability-calculations:
+https://github.com/Kellysususu/probability-and-inference-portfolio-Chen-Mengqing/blob/master/03-discrete-probability-calculations/writeup.html
