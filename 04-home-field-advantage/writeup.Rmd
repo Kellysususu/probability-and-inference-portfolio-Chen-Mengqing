@@ -1,0 +1,237 @@
+---
+title: "writeup"
+author: "Kelly Chen"
+date: "10/2/2021"
+output: html_document
+---
+
+## Initial Setup and Variable definition
+
+```{r}
+require(dplyr)
+require(data.table)
+# Get all possible outcomes
+apo <- fread("all-possible-world-series-outcomes.csv")
+
+# Home field indicator
+hfi <- c(1,1,0,0,0,1,1) #{ATL, ATL, NYC, NYC, NYC, ATL, ATL}
+
+# P_B
+pb <- 0.55
+advantage_multiplier <- 1.1 # Set = 1 for no advantage
+pbh <- pb*advantage_multiplier
+pba <- 1 - (1 - pb)*advantage_multiplier
+
+# Calculate the probability of each possible outcome
+apo[, p := NA_real_] # Initialize new column in apo to store prob
+for(i in 1:nrow(apo)){
+  prob_game <- rep(1, 7)
+  for(j in 1:7){
+    p_win <- ifelse(hfi[j], pbh, pba)
+    prob_game[j] <- case_when(
+        apo[i,j,with=FALSE] == "W" ~ p_win
+      , apo[i,j,with=FALSE] == "L" ~ 1 - p_win
+      , TRUE ~ 1
+    )
+  }
+  apo[i, p := prod(prob_game)] # Data.table syntax
+}
+
+# Sanity check: does sum(p) == 1?
+#apo[, sum(p)] # This is data.table notation
+
+# Probability of overall World Series outcomes
+apo[, sum(p), overall_outcome]
+
+```
+
+
+## Question 1:
+
+probability that the Braves win the world series when the sequence of game locations is {NYC, NYC, ATL, ATL, ATL, NYC, NYC}
+
+**With Home field advantage**:
+
+```{r}
+# Home field indicator
+alter_loca <- c(0,0,1,1,1,0,0)
+
+# Calculate the probability of each possible outcome
+apo[, p := NA_real_] # Initialize new column in apo to store prob
+for(i in 1:nrow(apo)){
+  prob_game <- rep(1, 7)
+  for(j in 1:7){
+    p_win <- ifelse(alter_loca[j], pbh, pba)
+    prob_game[j] <- case_when(
+        apo[i,j,with=FALSE] == "W" ~ p_win
+      , apo[i,j,with=FALSE] == "L" ~ 1 - p_win
+      , TRUE ~ 1
+    )
+  }
+  apo[i, p := prod(prob_game)] # Data.table syntax
+}
+
+# Probability of overall World Series outcomes
+win_with<-apo[, sum(p), overall_outcome]
+(win_home<-win_with$V1[1])
+```
+
+**Situation without home field advantage**:
+
+```{r}
+#Win probability in world series of Braves without home field advantage, which means every single game the win probability is the same
+
+(win_without<-1-pbinom(3,7,0.55))
+```
+**The difference of two probabilities**:
+```{r}
+win_home-win_without
+```
+
+
+## Question2
+
+**Situation with home field advantage using simulation**:
+
+```{r}
+#Randomly simulate the result of the 7 matches
+
+
+#create matrix for the new simulation
+n<-10000
+po<-matrix(rep(NA,n*8),ncol=8,byrow = TRUE)
+colnames(po)<-c('Game 1','Game 2','Game 3','Game 4','Game 5','Game 6','Game 7','Outcome')
+
+#Simulation
+test_seq<-seq(1,n)
+
+for (i in test_seq){
+  match_outcome<-rep(1,7)
+  for (j in 1:7){
+    match_outcome[j]<-rbinom(1,1,ifelse(alter_loca[j],pbh,pba))
+  }
+  po[i,1:7]<- match_outcome
+  po[i,8]<-round(mean(match_outcome))
+}
+(sim_home<-mean(po[,'Outcome']))
+
+```
+**Situation without home field advantage using simulation**:
+
+```{r}
+n<-10000
+po<-matrix(rep(NA,n*8),ncol=8,byrow = TRUE)
+colnames(po)<-c('Game 1','Game 2','Game 3','Game 4','Game 5','Game 6','Game 7','Outcome')
+
+#Simulation
+test_seq<-seq(1,n)
+
+for (i in test_seq){
+  
+  match_outcome<-rbinom(7,1,pb)
+  po[i,1:7]<- match_outcome
+  po[i,8]<-round(mean(match_outcome))
+}
+(sim_no_home<-mean(po[,'Outcome']))
+```
+**Difference of the two simulation**
+```{r}
+(diff_sim<-abs(sim_home-sim_no_home))
+```
+
+## Question 3
+
+**Relative Error**
+```{r}
+(rela<- abs(sim_home-win_home)/win_home)
+```
+**Absolute Error**
+```{r}
+abs(sim_home-win_home)
+```
+## Question 4
+
+**Situation with home field advantage**:
+```{r}
+sim_pb<-seq(0.1,1,0.01)
+new_prob<-rep(NA,length(sim_pb))
+without_win<-rep(NA,length(sim_pb))
+total_diff<-rep(NA,length(sim_pb))
+
+for (x in seq_along(sim_pb)){
+  pbh_new <- sim_pb[x]*advantage_multiplier
+  pba_new <- 1 - (1 - sim_pb[x])*advantage_multiplier
+  # Calculate the probability of each possible outcome
+  apo[, p := NA_real_] # Initialize new column in apo to store prob
+  for(i in 1:nrow(apo)){
+    prob_game <- rep(1, 7)
+    for(j in 1:7){
+      p_win <- ifelse(alter_loca[j], pbh_new, pba_new)
+      prob_game[j] <- case_when(
+          apo[i,j,with=FALSE] == "W" ~ p_win
+        , apo[i,j,with=FALSE] == "L" ~ 1 - p_win
+        , TRUE ~ 1
+      )
+    }
+  apo[i, p := prod(prob_game)] # Data.table syntax
+
+  # Probability of overall World Series outcomes
+  win_with<-apo[, sum(p), overall_outcome]
+  new_prob[x]<-win_with$V1[1]
+  without_win[x]<- 1-pbinom(3,7,sim_pb[x])
+  total_diff[x]<-(new_prob[x]-without_win[x])
+  }
+}
+
+# Make Plot between Pb and probability of winning the world series
+
+plot(sim_pb,total_diff,type='l',xlab='Pb',ylab='Difference in probability',main='Pb and difference probability in home field advantage')
+
+```
+
+Answer:There is a relationship between Pb and the difference of probabilities with/without home field advantage. When Pb is over a certain level, let's assumes 0.4 or 0.5, the Braves could have a higher winrate with home field advantage.
+
+## Question 5
+
+```{r}
+#Set up sequence on advantage multiploer to be number between 1.1 to 1.5, every break is 0.01.
+
+advantage_multiplier_new<-seq(1.1,1.5,0.01)
+new_prob<-rep(NA,length(advantage_multiplier_new))
+without_win<-rep(NA,length(advantage_multiplier_new))
+total_diff<-rep(NA,length(advantage_multiplier_new))
+
+#Simulation
+for (q in seq_along(advantage_multiplier_new)){
+  pbh_new <- pb*(advantage_multiplier_new[q])
+  pba_new <- 1 - (1 - pb)*advantage_multiplier_new[q]
+  # Calculate the probability of each possible outcome
+  apo[, p := NA_real_] # Initialize new column in apo to store prob
+  for(i in 1:nrow(apo)){
+    prob_game <- rep(1, 7)
+    for(j in 1:7){
+      p_win <- ifelse(alter_loca[j], pbh_new, pba_new)
+      prob_game[j] <- case_when(
+          apo[i,j,with=FALSE] == "W" ~ p_win
+        , apo[i,j,with=FALSE] == "L" ~ 1 - p_win
+        , TRUE ~ 1
+      )
+    }
+  apo[i, p := prod(prob_game)] # Data.table syntax
+
+  # Probability of overall World Series outcomes
+  win_with<-apo[, sum(p), overall_outcome]
+  new_prob[q]<-win_with$V1[1]
+ 
+  total_diff[q]<-(new_prob[q]-win_without)
+  }
+}
+# Make Plot between Advantage multiplier and probability of winning the world series
+
+plot(advantage_multiplier_new,total_diff,type='l',xlab='Advantage Multiplier',ylab='Difference in probability',main='Multiplier and difference probability in home field advantage')
+
+```
+
+Answer: There is a relationship between advantage multiplier and the difference of winning probabilities with/without home field advantage. Since most of the matches are away from home, the larger the multiplier means the larger the weight of home field advantage, leading to negative relationship of the difference. 
+
+
