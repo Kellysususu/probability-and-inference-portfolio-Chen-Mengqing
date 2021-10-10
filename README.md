@@ -13,3 +13,9 @@ https://github.com/Kellysususu/probability-and-inference-portfolio-Chen-Mengqing
 
 03-discrete-probability-calculations:
 https://github.com/Kellysususu/probability-and-inference-portfolio-Chen-Mengqing/blob/master/03-discrete-probability-calculations/writeup.html
+
+04-home-field-advantage:
+https://github.com/Kellysususu/probability-and-inference-portfolio-Chen-Mengqing/tree/master/04-home-field-advantage
+
+05-log-transformation:
+https://github.com/Kellysususu/probability-and-inference-portfolio-Chen-Mengqing/tree/master/05-log-transformation
