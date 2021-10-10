@@ -22,11 +22,15 @@ What is the probability that the Braves win the World Series given that P=0.55?
 ```{r}
 library(ggplot2)
 library(dplyr)
-#There are 7 teams in the game, so the total match Braves needed is 7 games, and to win the world series, Braves needs to win at least 4 games.
+```
+There are 7 teams in the game, so the total match Braves needed is 7 games, and to win the world series, Braves needs to win at least 4 games.
 
-#since pbinom produces the at most 3 games winning probability, we need to subtract that probability to get the result of winning at least 4 games probability.
+since pbinom produces the at most 3 games winning probability, we need to subtract that probability to get the result of winning at least 4 games probability.
+
+```{r}
 1-pbinom(3,7,0.55)
 ```
+
 Answer: The probability that the Braves win the World Series given P=0.55 is 0.6082878.
 
 ## Question 2
@@ -47,6 +51,7 @@ p_win<-na.omit(p_win)
 #plot p2 and p_win
 plot(p2,p_win,xlab='Probability of the Braves winning a head-to-head matchup',ylab='Pr(Win World Series',type='l',main='Probability of winning the World Series')
 ```
+From the plot we could see the probability that the Braves win the World Series given that P=x, so the p is a random variable we produced from simulation. We could see as x increases, the winning probability also increases.
 
 ## Question 3
 
@@ -111,6 +116,8 @@ plot(x=p_x,y=series_length,type='l',xlab='Probability of the Braves winning a he
 
 ```
 
+From the plot we could see that the shortest series length needed so that P(Braves win World Series|P=x)≥0.8 is when p is over approximately 0.55, after 0.55 the less the series length neede for the Braves to win.
+
 ## Question 5
 
 Calculate P(Pb=0.55|Braves win World Series in 7 games) under the assumption that either Pb=0.55 or Pb=0.45. Explain your solution.
@@ -122,22 +129,25 @@ We set P(B) as the probability of Braves win world series in 7 games.
 Since Pb is either 0.55 or 0.45, so the **P(A)=P(Pb=0.55)=0.5**.
 Since there are only two conditions where Pb=0.45 or Pb=0.55, so the total probability of winning the world series should be an average of the two condition.
 ```{r}
+#Calculate the winning probability of Braves when situation is either 0.45 or 0.55
+p_win_0.55<-dbinom(4,7,0.55)
+p_win_0.45<-dbinom(4,7,0.45)
 
-p_win_0.55<-1-pbinom(3,7,0.55)
-p_win_0.45<-1-pbinom(3,7,0.45)
-
-
+#The average of winning probability assume either situation happens is 1/2.
 p_total_win<-(p_win_0.55+p_win_0.45)/2
 p_total_win
 ```
 After calculation, we can know that the **P(B)=total probability of winning the world series=0.5**
 
-From question 1, we know that **P(B|A)=P(winning the world series|p=0.55)=0.6082878**
+From question 1, we know that **P(B|A)=P(winning the world series|p=0.55)=p_win_0.55**. P(B) Here is the average of two situations that Braves win 4 lose 3 games probability, which is p_total_win.
 ```{r}
+
+#Assume the probability of either 0.55 or 0.45 is 1/2.
 p_a<-0.5
 p_b<-0.5
-p_b_a<-0.6082878
-p_final<-p_b_a*p_a/p_b
+
+#According to Bayes Rule, calculate p_final
+p_final<-p_win_0.55*p_a/p_total_win
 p_final
 ```
-Answer: The probability for the problem is 0.6082878.
+Answer: The probability for the problem is 0.55.
