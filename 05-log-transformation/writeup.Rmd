@@ -1,0 +1,340 @@
+---
+title: "05-log-transformation"
+author: "Kelly Chen"
+date: "10/9/2021"
+output: html_document
+---
+## Part 1
+
+**Gamma Distribution **
+
+X ∼ GAMMA(shape = 3, scale = 1)
+```{r}
+library(ggplot2)
+library(dplyr)
+#set up x value
+x<-seq(0,12,by=0.5)
+
+#default value
+shape<-3
+scale<-1
+x_mean<-shape*scale
+x_median<-qgamma(0.5,shape,scale)
+
+#pdf y value
+gamma_x<-dgamma(x,shape,scale)
+
+#Plot gamma distribution
+plot(x,gamma_x,type='l',main='gamma distribution PDF')
+
+#calculate mean
+dgamma(x_mean,shape,scale)
+
+#Mark mean in plot
+abline(v=x_mean,col='blue')
+text(4,0.05,'Mean',cex=0.75)
+
+#calculate median
+
+med_x<-dgamma(x_median,shape,scale)
+med_x
+
+#Mark median in plot
+abline(v=x_median,col='red')
+text(2,0.10,'Median',cex=0.75)
+
+
+```
+
+```{r}
+#cdf y value
+gamma_cdf<-pgamma(x,shape,scale)
+
+#calculate mean for cdf
+pgamma(x_mean,shape,scale)
+
+#plot cdf
+plot(x,gamma_cdf,type='l',main='gamma distribution CDF')
+
+#mark mean for cdf
+abline(v=x_mean,col='blue')
+text(2,0.05,'Mean',cex=0.75)
+
+#calculate median for cdf
+pgamma(x_median,shape,scale)
+
+#mark median for cdf
+abline(v=x_median,col='red')
+text(4,0.05,'Median',cex=0.75)
+
+```
+
+**log normal distribution**
+
+X ∼ LOG NORMAL(μ =  − 1, σ = 1)
+```{r}
+#set up default value
+set.seed(100)
+meanlog<--1
+sdlog<-1
+
+#log normal distribution y value
+draw_log<-rlnorm(n=100,meanlog,sdlog)
+log_norm_value<-dlnorm(draw_log,meanlog,sdlog)
+log_norm_df<-data.frame(draw_log,log_norm_value)
+
+#x-intercept of mean and median
+x_log_mean<-mean(draw_log)
+x_log_median<-qlnorm(0.5,meanlog,sdlog)
+
+
+#arrange dataframe
+log_norm_df<-log_norm_df %>%
+  arrange(by=draw_log) 
+
+
+#plot log normal distribution PDF
+ggplot(log_norm_df,aes(x=draw_log,y=log_norm_value))+geom_line()+geom_vline(xintercept = x_log_mean,col='blue' )+geom_vline(xintercept = x_log_median,col='red')+geom_text(aes(x=1,y=1),label='mean')+theme_classic()+geom_text(aes(x=0.3,label='median',y=0.5))+ggtitle("Log normal distribution PDF")
+
+```
+
+```{r}
+#log normal distribution y value CDF
+draw_log<-rlnorm(n=1000,meanlog,sdlog)
+log_norm_value<-plnorm(draw_log,meanlog,sdlog)
+log_norm_df_cdf<-data.frame(draw_log,log_norm_value)
+
+
+#arrange dataframe
+log_norm_df_cdf<-log_norm_df_cdf %>%
+  arrange(by=draw_log) 
+
+
+#plot log normal distribution PDF
+ggplot(log_norm_df_cdf,aes(x=draw_log,y=log_norm_value))+geom_line()+geom_vline(xintercept = x_log_mean,col='blue' )+geom_vline(xintercept = x_log_median,col='red')+geom_text(aes(x=1,y=0.7),label='mean')+theme_classic()+geom_text(aes(x=0.3,label='median',y=0.5))+ggtitle("Log normal distribution PDF")+scale_x_continuous(breaks=seq(0,5,1))
+```
+
+**Uniform Distribution**
+
+X ∼ UNIFORM(0, 12)
+```{r}
+#set up default value
+min<-0
+max<-12
+
+#create y value for uniform pdf
+uni_pdf<-dunif(x,min,max)
+
+#mean of uniform pdf
+x_mean<-(min+max)/2
+
+#plot unifrom PDF
+plot(x,uni_pdf,type='s',main='Uniform Distribution PDF')
+
+#Mark mean and median of PDF
+abline(v=x_mean,col="red")
+text(6,0.08,"Median=Mean")
+
+```
+
+```{r}
+#create y value for uniform pdf
+uni_cdf<-punif(x,min,max)
+
+#mean of uniform pdf
+x_mean<-(min+max)/2
+
+#plot uniform PDF
+plot(x,uni_cdf,type='l',main='Uniform Distribution CDF')
+
+#Mark mean and median of PDF
+abline(v=x_mean,col="red")
+text(6,0.05,"Median=Mean")
+
+```
+## Log Transformation
+
+**Gamma Distribution**
+```{r}
+#generate gamma value
+rand_gamma<-rgamma(1000,shape,scale)
+log_gamma<-log(rand_gamma)
+
+#find mean of log gamma
+gamma_mean<-mean(log_gamma)
+
+#find median of log gamma
+gamma_median<-median(log_gamma)
+
+#plot PDF for gamma distribution
+hist(log_gamma,main='Log transformation Gamma PDF',breaks = 100)
+
+#add mean and median
+abline(v=gamma_mean,col='blue')
+text(0.75,15,"mean")
+abline(v=gamma_median,col="red")
+text(1.2,15,"median")
+
+```
+
+```{r}
+
+#find mean of log gamma
+gamma_mean<-mean(log_gamma)
+
+#find median of log gamma
+gamma_median<-median(log_gamma)
+
+#plot PDF for gamma distribution
+plot(ecdf(log_gamma),main="Gamma distribution CDF")
+
+#add mean and median
+abline(v=gamma_mean,col='blue')
+text(0.75,0.4,"mean")
+abline(v=gamma_median,col="red")
+text(1.2,0.5,"median")
+```
+
+**Log Normal Distribution**
+
+```{r}
+logg_normal<-log(draw_log)
+
+#plot PDF for gamma distribution
+hist(logg_normal,main="Log Normal transformation PDF",breaks=100)
+
+#add mean and median
+abline(v=mean(logg_normal),col='blue')
+text(-0.8,10,"mean")
+abline(v=median(logg_normal),col="red")
+text(-1.5,10,"median")
+```
+```{r}
+#plot log transformation CDF
+plot(ecdf(logg_normal),main="log transformation CDF")
+
+#add mean and median
+abline(v=mean(logg_normal),col='blue')
+text(-0.7,0.5,"mean")
+abline(v=median(logg_normal),col="red")
+text(-1.5,0.5,"median")
+```
+**Uniform Distribution**
+```{r}
+#create log uniform distribution value
+log_unif<-log(runif(1000,min,max))
+
+#create pdf
+hist(log_unif,breaks=100,main="Log Uniform transformation PDF")
+
+#Mark Mean and Median
+abline(v=mean(log_unif),col='blue')
+text(1.1,20,"mean")
+abline(v=median(log_unif),col="red")
+text(2,20,"median")
+```
+
+```{r}
+#create CDF
+plot(ecdf(log_unif),main="Uniform transformation CDF")
+
+#add mean and median
+abline(v=mean(log_unif),col='blue')
+text(1,0.5,"mean")
+abline(v=median(log_unif),col="red")
+text(2.2,0.5,"median")
+```
+
+## geometric and arithmetric mean
+
+**Gamma Distribution**
+```{r}
+#Set up function
+geo_mean<-function(x){
+  geo<-exp(mean(log(x)))
+  return(geo)
+}
+
+geo_rec<-rep(NA,1000)
+ari_rec<-rep(NA,1000)
+
+for (i in seq(1,1000)){
+  gamma_list<-rgamma(100,shape,scale)
+  geo_rec[i]<-geo_mean(gamma_list)
+  ari_rec[i]<-mean(gamma_list)
+}
+
+#plot geometric mean and arithmetic mean
+plot(geo_rec,ari_rec,main='Gamma Distribution Geo_mean & Ari_mean')
+abline(lm(ari_rec~geo_rec),col="red")
+
+#histogram of difference
+gamma_diff<-geo_rec-ari_rec
+hist(gamma_diff,breaks=100,main="Gamma-Difference of Mean")
+```
+
+**Log Normal Distribution**
+```{r}
+
+geo_rec_1<-rep(NA,1000)
+ari_rec_1<-rep(NA,1000)
+
+for (i in seq(1,1000)){
+  lognorm_list<-rlnorm(100,meanlog,sdlog)
+  geo_rec_1[i]<-geo_mean(lognorm_list)
+  ari_rec_1[i]<-mean(lognorm_list)
+}
+
+#plot geometric mean and arithmetic mean
+plot(geo_rec_1,ari_rec_1,main='Log Normal Distribution Geo_mean & Ari_mean')
+abline(lm(ari_rec_1~geo_rec_1),col="red")
+
+#histogram of difference
+lognorm_diff<-geo_rec_1-ari_rec_1
+hist(lognorm_diff,breaks=100,main="Log Normal-Difference of Mean")
+```
+
+**Uniform Distribution**
+```{r}
+geo_rec_2<-rep(NA,1000)
+ari_rec_2<-rep(NA,1000)
+
+for (i in seq(1,1000)){
+  uni_list<-runif(100,min,max)
+  geo_rec_2[i]<-geo_mean(uni_list)
+  ari_rec_2[i]<-mean(uni_list)
+}
+
+#plot geometric mean and arithmetic mean
+plot(geo_rec_2,ari_rec_2,main='Uniform Distribution Geo_mean & Ari_mean')
+abline(lm(ari_rec_2~geo_rec_2),col="red")
+
+#histogram of difference
+unif_diff<-geo_rec_2-ari_rec_2
+hist(unif_diff,breaks=100,main="Uniform-Difference of Mean")
+```
+## Part 3 
+
+```{r}
+rec_1<-rep(NA,1000)
+rec_2<-rep(NA,1000)
+
+
+
+for (i in seq(1,1000)){
+  uni_list<-runif(100,0,10)
+  rec_1[i]<-mean(log(uni_list))
+  rec_2[i]<-log(mean(uni_list))
+}
+
+#plot geometric mean and arithmetic mean
+plot(rec_1,rec_2,main='E(Log(X)) VS Log(E(X))')
+abline(lm(rec_2~rec_1),col="red")
+
+#histogram of difference
+rec_diff<-rec_1-rec_2
+hist(rec_diff,breaks=100,main="Histogram E(Log(X)) VS Log(E(X))")
+```
+
+**Summary**
+Since rec2 is log (E[X]), and the difference of rec_1-rec_2 is always negative to zero, so rec_2 >= rec_1, which means Log(E(x)) >=E(Log(x)). Log(E(x)) is always larger or equal to the other.
