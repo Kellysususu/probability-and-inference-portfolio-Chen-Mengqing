@@ -31,13 +31,15 @@ since pbinom produces the at most 3 games winning probability, we need to subtra
 1-pbinom(3,7,0.55)
 ```
 
-Answer: The probability that the Braves win the World Series given P=0.55 is 0.6082878.
+Answer: The probability that the Braves win the World Series given P=0.55 is 0.6082878.This is a relatively high winrate, which means that on average the Braves has a high chance of winning the world series given that they have 0.55 winrate for each match in the world series. 
 
 ## Question 2
 
 What is the probability that the Braves win the World Series given that P=x?
+
+Assume p is a random probability between 0-1. Here we take 51 values of P to run the simulation to test the probability of Braves wins the world series.
+
 ```{r}
-#assume p is a random probability between 0-1. Here we take 51 values of P to run the simulation to test the probability of Braves wins the world series.
 p2<-seq(0,1,0.02)
 p_win<-rep(NA,100)
 
@@ -51,14 +53,17 @@ p_win<-na.omit(p_win)
 #plot p2 and p_win
 plot(p2,p_win,xlab='Probability of the Braves winning a head-to-head matchup',ylab='Pr(Win World Series',type='l',main='Probability of winning the World Series')
 ```
-From the plot we could see the probability that the Braves win the World Series given that P=x, so the p is a random variable we produced from simulation. We could see as x increases, the winning probability also increases.
+
+From the plot we could see the probability that the Braves win the World Series given that P=x, so the p is a random variable we produced from simulation. We could see as x increases, the winning probability of the Braves also increases.
 
 ## Question 3
 
 Suppose one could change the World Series to be best-of-9 or some other best-of-X series. What is the shortest series length so that P(Braves win World Series|P=.55)≥0.8
 
+
+We will set the x value for best of x series, we set the maximum value of x to 100.
+
 ```{r}
-#set the x value for best of x series, we set the maximum value of x to 100.
 best_x<-seq(1,999,2)
 p_win_1<-rep(NA,100)
 
@@ -80,7 +85,8 @@ best_data %>%
   filter(win_probability==min(win_probability))
 
 ```
-Answer: The shortest number of series needed is 71.
+
+Answer: The shortest number of series needed is 71. This means that if the world series is to be best-of-71 games, then the Braves could have a winrate higher than 0.8 given that their winrate for each game is 0.55.
 
 ## Question 4
 
@@ -137,9 +143,10 @@ p_win_0.45<-dbinom(4,7,0.45)
 p_total_win<-(p_win_0.55+p_win_0.45)/2
 p_total_win
 ```
-After calculation, we can know that the **P(B)=total probability of winning the world series=0.5**
+After calculation, we can know that the **P(B)=total probability of winning the world series=0.5**, this is the average winning probability of the Braves assume the probability of each match winrate situation happens is 0.5.
 
 From question 1, we know that **P(B|A)=P(winning the world series|p=0.55)=p_win_0.55**. P(B) Here is the average of two situations that Braves win 4 lose 3 games probability, which is p_total_win.
+
 ```{r}
 
 #Assume the probability of either 0.55 or 0.45 is 1/2.
@@ -150,4 +157,4 @@ p_b<-0.5
 p_final<-p_win_0.55*p_a/p_total_win
 p_final
 ```
-Answer: The probability for the problem is 0.55.
+Answer: The probability for the problem is 0.55. This means that if the Braves has a winrate of either 0.55 or 0.45, and the probability of each situation happens is 0.5, then given that the Braves win World Series in 7 games, the winrate of the Braves in each game is 0.55.
