@@ -11,10 +11,8 @@ output: html_document
 
 The world series is a best-of-7 match-up between the champions of the American and National Leagues of Major League Baseball. This document is to analyze and explain the probability calculations related to world series.
 
-## Default Settings
-
 Suppose that the Braves and the Yankees are teams competing in the World Series.
-Suppose that in any given game, the probability that the Braves win is P and the probability that the Yankees win is 1-P. 
+Suppose that in any given game, the probability that the Braves win is PB and the probability that the Yankees win is P= 1 − PB.
 
 ## Question 1
 
@@ -31,7 +29,7 @@ since pbinom produces the at most 3 games winning probability, we need to subtra
 1-pbinom(3,7,0.55)
 ```
 
-Answer: The probability that the Braves win the World Series given P=0.55 is 0.6082878.This is a relatively high winrate, which means that on average the Braves has a high chance of winning the world series given that they have 0.55 winrate for each match in the world series. 
+Answer: The probability that the Braves win the World Series given P=0.55 is 0.6082878.This is a relatively high win rate, which means that on average the Braves has a high chance of winning the world series given that they have 0.55 win rate for each match in the world series. 
 
 ## Question 2
 
@@ -122,7 +120,7 @@ plot(x=p_x,y=series_length,type='l',xlab='Probability of the Braves winning a he
 
 ```
 
-From the plot we could see that the shortest series length needed so that P(Braves win World Series|P=x)≥0.8 is when p is over approximately 0.55, after 0.55 the less the series length neede for the Braves to win.
+From the plot we could see that the shortest series length needed so that P(Braves win World Series|P=x)≥0.8 is when p is over approximately 0.55, after 0.55 the less the series length needed for the Braves to win.
 
 ## Question 5
 
