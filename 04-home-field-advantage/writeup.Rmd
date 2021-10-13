@@ -4,8 +4,32 @@ author: "Kelly Chen"
 date: "10/2/2021"
 output: html_document
 ---
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+## Introduction
+
+The world series is a best-of-7 match-up between the champions of the American and National Leagues of Major League Baseball. In this assignment, you are going to explain probability calculations related to the world series.
+
+Suppose that the Braves and the Yankees are teams competing in the World Series.
+
+The table below has the two possible schedules for each game of the series. (NYC = New York City, ATL = Atlanta)
+
+| Overall advantage | Game 1 | Game 2 | Game 3 | Game 4 | Game 5 | Game 6 | Game 7 |
+|:-----------------:|:------:|:------:|:------:|:------:|:------:|:------:|:------:|
+|       Braves      |   ATL  |   ATL  |   NYC  |   NYC  |   NYC  |   ATL  |   ATL  |
+|      Yankees      |   NYC  |   NYC  |   ATL  |   ATL  |   ATL  |   NYC  |   NYC  |
+
+Let PB be the probability that the Braves win a single head-to-head match-up with the Yankees, under the assumption that home field advantage doesn’t exist. Let PBH denote the probability that the Braves win a single head-to-head match-up with the Yankees as the home team (H for home). Let PBA denote the probability that the Braves win a single head-to-head match-up with the away team (A for away).
+
+|Gamelocation |	No advantage |	      Advantage         |
+|:-----------:|:------------:|:------------------------:|
+|    ATL	    |    PB	       | PBH = PB * 1.1           |
+|    NYC	    |    PB	       | PBA = 1 − (1 − PB) * 1.1 |
 
 ## Initial Setup and Variable definition
+
+This is the initial set up for the analysis. Based on the above information, we can set the variables to prepare for later analysis. 
 
 ```{r}
 require(dplyr)
@@ -21,6 +45,10 @@ pb <- 0.55
 advantage_multiplier <- 1.1 # Set = 1 for no advantage
 pbh <- pb*advantage_multiplier
 pba <- 1 - (1 - pb)*advantage_multiplier
+```
+
+Using analysis method, we can calculate the probability of each possible outcome and take the average win rate for the given sequence.
+```{r}
 
 # Calculate the probability of each possible outcome
 apo[, p := NA_real_] # Initialize new column in apo to store prob
@@ -44,11 +72,11 @@ for(i in 1:nrow(apo)){
 apo[, sum(p), overall_outcome]
 
 ```
-
+Caculated by simulation, if the Braves win the world series when the sequence of game locations is {NYC, NYC, ATL, ATL, ATL, NYC, NYC}, the winrate would be 0.635 for winning the world series.
 
 ## Question 1:
 
-probability that the Braves win the world series when the sequence of game locations is {NYC, NYC, ATL, ATL, ATL, NYC, NYC}
+Probability that the Braves win the world series when the sequence of game locations is {NYC, NYC, ATL, ATL, ATL, NYC, NYC}
 
 **With Home field advantage**:
 
@@ -73,8 +101,10 @@ for(i in 1:nrow(apo)){
 
 # Probability of overall World Series outcomes
 win_with<-apo[, sum(p), overall_outcome]
-(win_home<-win_with$V1[1])
+win_home<-win_with$V1[1]
+win_home
 ```
+If the Braves win the world series when the sequence of game locations is {NYC, NYC, ATL, ATL, ATL, NYC, NYC}, the winning probability of Braves win the world series would be 0.604. 
 
 **Situation without home field advantage**:
 
@@ -83,20 +113,24 @@ win_with<-apo[, sum(p), overall_outcome]
 
 (win_without<-1-pbinom(3,7,0.55))
 ```
+Win probability in world series of Braves without home field advantage, which means every single game the win probability is the same when there is no home field advantage, the winning probability is 0.608 in this situation.
+
 **The difference of two probabilities**:
 ```{r}
 win_home-win_without
 ```
-
+This is the difference of winning probabilities between with home field advantage and without home field advantage. We can see that with home field advantage existing, the winrate of Braves would be less than without home field advantage. This is because more game are played away home field in the world series.
 
 ## Question2
 
 **Situation with home field advantage using simulation**:
 
+We randomly simulate the result of the 7 matches, and simulated 10000 times for the model to calculate the winrate.
+
 ```{r}
 #Randomly simulate the result of the 7 matches
 
-
+set.seed(100)
 #create matrix for the new simulation
 n<-10000
 po<-matrix(rep(NA,n*8),ncol=8,byrow = TRUE)
@@ -114,14 +148,17 @@ for (i in test_seq){
   po[i,8]<-round(mean(match_outcome))
 }
 (sim_home<-mean(po[,'Outcome']))
-
 ```
+Using simulation, we can see that the winning probability of Braves is 0.6047 when there is home field advantage.
+
 **Situation without home field advantage using simulation**:
 
 ```{r}
+set.seed(100)
 n<-10000
 po<-matrix(rep(NA,n*8),ncol=8,byrow = TRUE)
 colnames(po)<-c('Game 1','Game 2','Game 3','Game 4','Game 5','Game 6','Game 7','Outcome')
+
 
 #Simulation
 test_seq<-seq(1,n)
@@ -134,21 +171,40 @@ for (i in test_seq){
 }
 (sim_no_home<-mean(po[,'Outcome']))
 ```
+When running the simulation of without home field advantage, also take the average of 10000 times of simulation, the winning probability without home field advantage is 0.6085.
+
 **Difference of the two simulation**
 ```{r}
 (diff_sim<-abs(sim_home-sim_no_home))
 ```
+The difference of the winning probability in simulation of with/without home field advantage is 0.0038 when applying set.seed(100) to keep the simulation result consistant.
 
 ## Question 3
 
 **Relative Error**
+
+Formula for relative error:|Measured value-true value|/True value
+
 ```{r}
-(rela<- abs(sim_home-win_home)/win_home)
+#Relative Error of having home field advantage
+abs(sim_home-win_home)/win_home
+#relative error of without home field advantage
+abs(sim_no_home-win_without)/win_without
 ```
+For the relative error of the simulation, when having home field advantage the relative error is 0.013. When without home field advantage the relative error is 0.006.
+
 **Absolute Error**
+
+Formula for absolute error: |Measured value-true value|
+
 ```{r}
+#absolute error of having home field advantage
 abs(sim_home-win_home)
+#absolute error of without home field advantage
+abs(sim_no_home-win_without)
 ```
+For the absolute error, when having home field advantage the absolute error is 0.0077, when without home field advantage, the absolute error is 0.0035.
+
 ## Question 4
 
 **Situation with home field advantage**:

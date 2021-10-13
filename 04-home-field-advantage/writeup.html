@@ -171,8 +171,73 @@ pre code {
 </div>
 
 
+<div id="introduction" class="section level2">
+<h2>Introduction</h2>
+<p>The world series is a best-of-7 match-up between the champions of the American and National Leagues of Major League Baseball. In this assignment, you are going to explain probability calculations related to the world series.</p>
+<p>Suppose that the Braves and the Yankees are teams competing in the World Series.</p>
+<p>The table below has the two possible schedules for each game of the series. (NYC = New York City, ATL = Atlanta)</p>
+<table>
+<thead>
+<tr class="header">
+<th align="center">Overall advantage</th>
+<th align="center">Game 1</th>
+<th align="center">Game 2</th>
+<th align="center">Game 3</th>
+<th align="center">Game 4</th>
+<th align="center">Game 5</th>
+<th align="center">Game 6</th>
+<th align="center">Game 7</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="center">Braves</td>
+<td align="center">ATL</td>
+<td align="center">ATL</td>
+<td align="center">NYC</td>
+<td align="center">NYC</td>
+<td align="center">NYC</td>
+<td align="center">ATL</td>
+<td align="center">ATL</td>
+</tr>
+<tr class="even">
+<td align="center">Yankees</td>
+<td align="center">NYC</td>
+<td align="center">NYC</td>
+<td align="center">ATL</td>
+<td align="center">ATL</td>
+<td align="center">ATL</td>
+<td align="center">NYC</td>
+<td align="center">NYC</td>
+</tr>
+</tbody>
+</table>
+<p>Let PB be the probability that the Braves win a single head-to-head match-up with the Yankees, under the assumption that home field advantage doesn’t exist. Let PBH denote the probability that the Braves win a single head-to-head match-up with the Yankees as the home team (H for home). Let PBA denote the probability that the Braves win a single head-to-head match-up with the away team (A for away).</p>
+<table>
+<thead>
+<tr class="header">
+<th align="center">Gamelocation</th>
+<th align="center">No advantage</th>
+<th align="center">Advantage</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="center">ATL</td>
+<td align="center">PB</td>
+<td align="center">PBH = PB * 1.1</td>
+</tr>
+<tr class="even">
+<td align="center">NYC</td>
+<td align="center">PB</td>
+<td align="center">PBA = 1 − (1 − PB) * 1.1</td>
+</tr>
+</tbody>
+</table>
+</div>
 <div id="initial-setup-and-variable-definition" class="section level2">
 <h2>Initial Setup and Variable definition</h2>
+<p>This is the initial set up for the analysis. Based on the above information, we can set the variables to prepare for later analysis.</p>
 <pre class="r"><code>require(dplyr)</code></pre>
 <pre><code>## Loading required package: dplyr</code></pre>
 <pre><code>## 
@@ -200,9 +265,9 @@ hfi &lt;- c(1,1,0,0,0,1,1) #{ATL, ATL, NYC, NYC, NYC, ATL, ATL}
 pb &lt;- 0.55
 advantage_multiplier &lt;- 1.1 # Set = 1 for no advantage
 pbh &lt;- pb*advantage_multiplier
-pba &lt;- 1 - (1 - pb)*advantage_multiplier
-
-# Calculate the probability of each possible outcome
+pba &lt;- 1 - (1 - pb)*advantage_multiplier</code></pre>
+<p>Using analysis method, we can calculate the probability of each possible outcome and take the average win rate for the given sequence.</p>
+<pre class="r"><code># Calculate the probability of each possible outcome
 apo[, p := NA_real_] # Initialize new column in apo to store prob
 for(i in 1:nrow(apo)){
   prob_game &lt;- rep(1, 7)
@@ -225,10 +290,11 @@ apo[, sum(p), overall_outcome]</code></pre>
 <pre><code>##    overall_outcome        V1
 ## 1:               W 0.6345261
 ## 2:               L 0.3654739</code></pre>
+<p>Caculated by simulation, if the Braves win the world series when the sequence of game locations is {NYC, NYC, ATL, ATL, ATL, NYC, NYC}, the winrate would be 0.635 for winning the world series.</p>
 </div>
 <div id="question-1" class="section level2">
 <h2>Question 1:</h2>
-<p>probability that the Braves win the world series when the sequence of game locations is {NYC, NYC, ATL, ATL, ATL, NYC, NYC}</p>
+<p>Probability that the Braves win the world series when the sequence of game locations is {NYC, NYC, ATL, ATL, ATL, NYC, NYC}</p>
 <p><strong>With Home field advantage</strong>:</p>
 <pre class="r"><code># Home field indicator
 alter_loca &lt;- c(0,0,1,1,1,0,0)
@@ -250,23 +316,28 @@ for(i in 1:nrow(apo)){
 
 # Probability of overall World Series outcomes
 win_with&lt;-apo[, sum(p), overall_outcome]
-(win_home&lt;-win_with$V1[1])</code></pre>
+win_home&lt;-win_with$V1[1]
+win_home</code></pre>
 <pre><code>## [1] 0.604221</code></pre>
+<p>If the Braves win the world series when the sequence of game locations is {NYC, NYC, ATL, ATL, ATL, NYC, NYC}, the winning probability of Braves win the world series would be 0.604.</p>
 <p><strong>Situation without home field advantage</strong>:</p>
 <pre class="r"><code>#Win probability in world series of Braves without home field advantage, which means every single game the win probability is the same
 
 (win_without&lt;-1-pbinom(3,7,0.55))</code></pre>
 <pre><code>## [1] 0.6082878</code></pre>
+<p>Win probability in world series of Braves without home field advantage, which means every single game the win probability is the same when there is no home field advantage, the winning probability is 0.608 in this situation.</p>
 <p><strong>The difference of two probabilities</strong>:</p>
 <pre class="r"><code>win_home-win_without</code></pre>
 <pre><code>## [1] -0.004066825</code></pre>
+<p>This is the difference of winning probabilities between with home field advantage and without home field advantage. We can see that with home field advantage existing, the winrate of Braves would be less than without home field advantage. This is because more game are played away home field in the world series.</p>
 </div>
 <div id="question2" class="section level2">
 <h2>Question2</h2>
 <p><strong>Situation with home field advantage using simulation</strong>:</p>
+<p>We randomly simulate the result of the 7 matches, and simulated 10000 times for the model to calculate the winrate.</p>
 <pre class="r"><code>#Randomly simulate the result of the 7 matches
 
-
+set.seed(100)
 #create matrix for the new simulation
 n&lt;-10000
 po&lt;-matrix(rep(NA,n*8),ncol=8,byrow = TRUE)
@@ -284,11 +355,14 @@ for (i in test_seq){
   po[i,8]&lt;-round(mean(match_outcome))
 }
 (sim_home&lt;-mean(po[,&#39;Outcome&#39;]))</code></pre>
-<pre><code>## [1] 0.6015</code></pre>
+<pre><code>## [1] 0.6047</code></pre>
+<p>Using simulation, we can see that the winning probability of Braves is 0.6047 when there is home field advantage.</p>
 <p><strong>Situation without home field advantage using simulation</strong>:</p>
-<pre class="r"><code>n&lt;-10000
+<pre class="r"><code>set.seed(100)
+n&lt;-10000
 po&lt;-matrix(rep(NA,n*8),ncol=8,byrow = TRUE)
 colnames(po)&lt;-c(&#39;Game 1&#39;,&#39;Game 2&#39;,&#39;Game 3&#39;,&#39;Game 4&#39;,&#39;Game 5&#39;,&#39;Game 6&#39;,&#39;Game 7&#39;,&#39;Outcome&#39;)
+
 
 #Simulation
 test_seq&lt;-seq(1,n)
@@ -300,19 +374,33 @@ for (i in test_seq){
   po[i,8]&lt;-round(mean(match_outcome))
 }
 (sim_no_home&lt;-mean(po[,&#39;Outcome&#39;]))</code></pre>
-<pre><code>## [1] 0.61</code></pre>
+<pre><code>## [1] 0.6085</code></pre>
+<p>When running the simulation of without home field advantage, also take the average of 10000 times of simulation, the winning probability without home field advantage is 0.6085.</p>
 <p><strong>Difference of the two simulation</strong></p>
 <pre class="r"><code>(diff_sim&lt;-abs(sim_home-sim_no_home))</code></pre>
-<pre><code>## [1] 0.0085</code></pre>
+<pre><code>## [1] 0.0038</code></pre>
+<p>The difference of the winning probability in simulation of with/without home field advantage is 0.0038 when applying set.seed(100) to keep the simulation result consistant.</p>
 </div>
 <div id="question-3" class="section level2">
 <h2>Question 3</h2>
 <p><strong>Relative Error</strong></p>
-<pre class="r"><code>(rela&lt;- abs(sim_home-win_home)/win_home)</code></pre>
-<pre><code>## [1] 0.004503272</code></pre>
+<p>Formula for relative error:|Measured value-true value|/True value</p>
+<pre class="r"><code>#Relative Error of having home field advantage
+abs(sim_home-win_home)/win_home</code></pre>
+<pre><code>## [1] 0.0007928033</code></pre>
+<pre class="r"><code>#relative error of without home field advantage
+abs(sim_no_home-win_without)/win_without</code></pre>
+<pre><code>## [1] 0.0003488532</code></pre>
+<p>For the relative error of the simulation, when having home field advantage the relative error is 0.013. When without home field advantage the relative error is 0.006.</p>
 <p><strong>Absolute Error</strong></p>
-<pre class="r"><code>abs(sim_home-win_home)</code></pre>
-<pre><code>## [1] 0.002720972</code></pre>
+<p>Formula for absolute error: |Measured value-true value|</p>
+<pre class="r"><code>#absolute error of having home field advantage
+abs(sim_home-win_home)</code></pre>
+<pre><code>## [1] 0.0004790284</code></pre>
+<pre class="r"><code>#absolute error of without home field advantage
+abs(sim_no_home-win_without)</code></pre>
+<pre><code>## [1] 0.0002122031</code></pre>
+<p>For the absolute error, when having home field advantage the absolute error is 0.0077, when without home field advantage, the absolute error is 0.0035.</p>
 </div>
 <div id="question-4" class="section level2">
 <h2>Question 4</h2>
