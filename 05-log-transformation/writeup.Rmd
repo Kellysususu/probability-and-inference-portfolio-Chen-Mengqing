@@ -116,11 +116,11 @@ ggplot(log_norm_df_cdf,aes(x=draw_log,y=log_norm_value))+geom_line()+geom_vline(
 
 **Uniform Distribution**
 
-X ∼ UNIFORM(0, 12)
+X ∼ UNIFORM(-1, 13)
 ```{r}
 #set up default value
-min<-0
-max<-12
+min<--1
+max<-13
 
 #create y value for uniform pdf
 uni_pdf<-dunif(x,min,max)
@@ -222,7 +222,7 @@ text(-1.5,0.5,"median")
 **Uniform Distribution**
 ```{r}
 #create log uniform distribution value
-log_unif<-log(runif(1000,min,max))
+log_unif<-log(runif(1000,0,max))
 
 #create pdf
 hist(log_unif,breaks=100,main="Log Uniform transformation PDF")
@@ -266,7 +266,7 @@ for (i in seq(1,1000)){
 
 #plot geometric mean and arithmetic mean
 plot(geo_rec,ari_rec,main='Gamma Distribution Geo_mean & Ari_mean')
-abline(lm(ari_rec~geo_rec),col="red")
+abline(a=0,b=1,col="red")
 
 #histogram of difference
 gamma_diff<-geo_rec-ari_rec
@@ -287,7 +287,7 @@ for (i in seq(1,1000)){
 
 #plot geometric mean and arithmetic mean
 plot(geo_rec_1,ari_rec_1,main='Log Normal Distribution Geo_mean & Ari_mean')
-abline(lm(ari_rec_1~geo_rec_1),col="red")
+abline(a=0,b=1,col="red")
 
 #histogram of difference
 lognorm_diff<-geo_rec_1-ari_rec_1
@@ -307,7 +307,7 @@ for (i in seq(1,1000)){
 
 #plot geometric mean and arithmetic mean
 plot(geo_rec_2,ari_rec_2,main='Uniform Distribution Geo_mean & Ari_mean')
-abline(lm(ari_rec_2~geo_rec_2),col="red")
+abline(a=0,b=1,col="red")
 
 #histogram of difference
 unif_diff<-geo_rec_2-ari_rec_2
@@ -329,7 +329,7 @@ for (i in seq(1,1000)){
 
 #plot geometric mean and arithmetic mean
 plot(rec_1,rec_2,main='E(Log(X)) VS Log(E(X))')
-abline(lm(rec_2~rec_1),col="red")
+abline(a=0,b=1,col="red")
 
 #histogram of difference
 rec_diff<-rec_1-rec_2
