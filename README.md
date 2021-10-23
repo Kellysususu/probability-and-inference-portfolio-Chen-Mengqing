@@ -17,5 +17,9 @@ https://github.com/Kellysususu/probability-and-inference-portfolio-Chen-Mengqing
 04-home-field-advantage:
 https://github.com/Kellysususu/probability-and-inference-portfolio-Chen-Mengqing/tree/master/04-home-field-advantage
 
+
 05-log-transformation:
 https://github.com/Kellysususu/probability-and-inference-portfolio-Chen-Mengqing/tree/master/05-log-transformation
+
+06-order-statistics:
+https://github.com/Kellysususu/probability-and-inference-portfolio-Chen-Mengqing/tree/master/06-order-statistics
