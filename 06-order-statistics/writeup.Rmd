@@ -1,0 +1,254 @@
+---
+title: "06-order-statistics"
+author: "Kelly Chen"
+date: "10/22/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+#default library setup
+library(dplyr)
+```
+## Introduction
+
+The median is an important quantity in data analysis. It represents the middle value of the data distribution. This blog post is aiming to see if the estimated median matches with the theoretical distribution since most of the time the data distribution of the underlying data is generally unknown. Thus, we would like to quantify and communcate the degree of uncertainty in the data analysis. 
+
+
+## Q1
+
+The median from a sample of N=200 from the standard normal distribution. Assume 100th order statistic is approximately the median. Here we produced a function called dorder to help see the distribution of the density function.
+
+```{r}
+dorder<- function(x){
+  100*choose(200,100)*
+  (pnorm(x)^(100-1))*
+  (1-pnorm(x))^(200-100)*
+  dnorm(x)
+}
+x<-seq(-8,8,by=0.01)
+```
+
+# Standard Density plot for the median
+
+This is the standard density plot for the median from the sample. We can see it is a normal distributed curve.
+```{r}
+plot(x,dnorm(x,0,1),type="l",main="Density plot for standard normal distribution")
+```
+
+This is the standard density plot of the normal distribution of the median in the sample size. We can see it is normally distributed.
+
+# Dorder density function plot 
+
+Now we want to look at the PDF plot of the sample median distribution.
+
+```{r}
+plot(x,dorder(x),type="l",main="Density function plot for the median")
+```
+
+This is the density function plot of dorder with the median from a sample of N=200. It plots the density of the function we created for the median.
+
+# Probability function plot
+
+Now we will create the porder function and to plot the CDF of the sample median distribution.
+
+```{r}
+porder<-function(x){
+  pbinom(100-1,200,pnorm(x,0,1),lower.tail = FALSE)
+}
+curve(porder(x),-1,1,xlab=parse(text="x[(100)]"),ylab="Probability",main="Probability Function for the median")
+```
+
+This is the probability function plot which represents the cumulative density function plot of the median from the sample.
+
+# Quantile Density Function Plot
+
+Since we know that quantile function is the inverse of the cdf, we can use uniroot to find out the inverse function output to plot the quantile density function plot.
+
+```{r}
+p_cdf<-function(x,n,k){
+  pbinom(k-1,n,pnorm(x,0,1),lower.tail = FALSE)
+}
+qorder<-function(p,n,k){
+  
+  out<-p*0
+  for(i in seq_along(p)){
+    out[i]<-uniroot(function(x){p_cdf(x,n,k)-p[i]},c(-8,8))$root
+  }
+  out
+}
+  
+p<-seq(0.05,0.99,by=0.01)
+plot(p,qorder(p,200,100),type="l",main="Quantile function plot of the median")
+```
+
+From the plot, we applied the qorder function and show the inverse plot of the CDF function. This is now the quantile function of the sample median distribution.
+
+## Q: Simulate the sampling distribution for the median
+
+This is the emperical cdf output for sampling distribution for the median as a result of simulating 1000 times. The plot in red line is showing the sample size 200 cdf compared with the ecdf.
+
+```{r}
+new<-rep(NA,1000)
+for (i in seq(1,1000)){
+  dat<-rnorm(200,0,1)
+  new[i]<-median(dat)
+}
+plot(ecdf(new))
+curve(porder(x),add = TRUE,col="red")
+```
+
+From the plot, we can see that the simulated sampling distribution empirical CDF matches the original CDF curve since the overall trend mostly align with the red line.
+
+# Histogram for the simulated sampling distribution
+
+This is the histogram for the simulated sampling distribution above. The red line overlayed is the density function curve showing the density scale.
+
+```{r}
+hist(new,breaks = 100,freq=FALSE)
+curve(dorder(x),lwd=2,add=TRUE,col="red")
+```
+
+This is the histogram showing the sampling distribution from the previous question. We can also see that the density curve we plotted macthes the overall trend of the histogram.
+
+## QQ plot
+
+One common way to compare a random sample to a theoretical candidate distribution is the QQ plot. It is created by ploting quantiles of the theoretical distribution on the x-axis and emirical quantiles form the sample on the y-axis.
+
+Here we simulated the random normal distribution sample and take each set's mediani to generate the qqdata. Then we take the known distribution and we plot their quantile function to see if the match with each other.
+
+```{r}
+qqdata<-rep(NA,length(p))
+for (i in seq(p)){
+  data1<-rnorm(200,0,1)
+  qqdata[i]<-median(data1)
+}
+x<-qorder(p,200,100)
+y<-quantile(qqdata,probs=p)
+
+
+plot(x,y,asp=1,lwd=2,xlab="Theoretical quantile",ylab="Sample quantile")
+abline(0,1,col="red")
+
+```
+
+From the plot, we can see that the simulated data agree with the theoretical sampling distribution. The data points represent the simluated data median, and the red abline represents the theoretical sampling distribution. We can see most of the data points fall on the theoretical sampling distribution line. 
+
+## Modify functions of dorder, porder, and qorder
+
+Now we would like to modify the functions so that the functions take a new parameter k (for the kt**h order statistic) so that the functions will work for any order statistic and not just the median.
+
+# Modify dorder function
+
+```{r}
+dorder_mod<- function(x,n,k){
+  k*choose(n,k)*
+  (pnorm(x)^(k-1))*
+  (1-pnorm(x))^(n-k)*
+  dnorm(x)
+}
+```
+
+# Modify porder function
+
+```{r}
+porder_mod<-function(x,n,k){
+  pbinom(k-1,n,pnorm(x,0,1),lower.tail = FALSE)
+}
+```
+
+# Modify qorder function
+
+```{r}
+qorder_mod<-function(p,n,k){
+  out<-p*0
+  for(i in seq_along(p)){
+    out[i]<-uniroot(function(x){p_cdf(x,n,k)-p[i]},c(-8,8))$root
+  }
+  out
+}
+```
+
+## Generate qq plot for sample max and theoretical largest order statistic distribution
+
+```{r}
+qqdata1<-rep(NA,length(p))
+
+for (j in seq(p)){
+  data2<-rnorm(200,0,1)
+  qqdata1[j]<-max(data2)
+}
+
+x<-qorder_mod(p,200,200)
+y<-quantile(qqdata1,probs=p)
+
+plot(x,y,xlab="Theoretical quantile",ylab="Sample quantile")
+
+abline(0,1,col="red")
+```
+
+From the qqplot output, we could see that most of the data points from the simulated data fall on the line of the theoretical order statistic distribution, which means the simulated sampling distribution match the theoretical normal distribution on the max value.
+
+## Modify dorder, porder, and q order
+
+Here we would like the new modified function to take new parameters dist and ... so that the functions will work for any continuous distribution that has d  and p functions defined in r.
+
+# Modify dorder
+
+```{r}
+dorder_mod1<- function(x,n,k,dist,...){
+  d<-get(paste0("d",dist))
+  p<-get(paste0("p",dist))
+ 
+   k*choose(n,k)*
+  (p(x)^(k-1))*
+  (1-p(x))^(n-k)*
+  d(x)
+}
+```
+
+# Modify porder
+
+```{r}
+porder_mod1<-function(x,n,k,dist,...){
+  p<-get(paste0("p",dist))
+  pbinom(k-1,n,p(x,0,1),lower.tail = FALSE)
+}
+```
+
+# Modify qorder
+
+```{r}
+qorder_mod<-function(p,n,k,dist){
+  
+  out<-p*0
+  for(i in seq_along(p)){
+    out[i]<-uniroot(function(x){porder_mod1(x,n,k,dist,...)-p[i]},c(-8,8))$root
+  }
+  out
+}
+```
+
+
+## Apply modifed functions 
+
+Now we will use the newly modified dorder and porder function to plot the probability and density functions for the sample min(N=200).
+
+# Probability Density function
+```{r}
+curve(dorder_mod1(x,200,1,dist="norm"),-8,8,main="PDF of the sample min(N=200)",ylab="Probability density")
+
+```
+
+We applied the modified dorder function to plot the pdf with the sample min. The sample size is 200, and we take the parameters n=200, k=1, and dist="normal" to plot the normal distribution probability density function.
+
+# Cumulative Density Function
+
+```{r}
+curve(porder_mod1(x,200,1,dist="norm"),-8,8,main="CDF of the sample min(N=200)",ylab="Cumulative density")
+```
+
+We applied the modified porder function to plot the pdf with the sample min. The sample size is 200, and we take the parameters n=200, k=1, and dist="normal" to plot the normal distribution cumulative density function. From the plot, we can see it is similar to the median distribution for the normal distribution.
