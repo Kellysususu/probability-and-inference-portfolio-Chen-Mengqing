@@ -13,7 +13,7 @@ X ∼ GAMMA(shape = 3, scale = 1)
 library(ggplot2)
 library(dplyr)
 #set up x value
-x<-seq(0,12,by=0.5)
+x<-seq(-1,13,by=0.5)
 
 #default value
 shape<-3
@@ -129,7 +129,8 @@ uni_pdf<-dunif(x,min,max)
 x_mean<-(min+max)/2
 
 #plot unifrom PDF
-plot(x,uni_pdf,type='s',main='Uniform Distribution PDF')
+plot(x,uni_pdf,type='s',main='Uniform Distribution PDF',xlim=c(-1,13))
+axis(side = 1, at=-1:13)
 
 #Mark mean and median of PDF
 abline(v=x_mean,col="red")
@@ -146,6 +147,7 @@ x_mean<-(min+max)/2
 
 #plot uniform PDF
 plot(x,uni_cdf,type='l',main='Uniform Distribution CDF')
+axis(side = 1, at=-1:13)
 
 #Mark mean and median of PDF
 abline(v=x_mean,col="red")
@@ -236,7 +238,7 @@ text(2,20,"median")
 
 ```{r}
 #create CDF
-plot(ecdf(log_unif),main="Uniform transformation CDF")
+plot(ecdf(log_unif),main="Log Uniform transformation CDF")
 
 #add mean and median
 abline(v=mean(log_unif),col='blue')
