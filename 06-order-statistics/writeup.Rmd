@@ -121,13 +121,13 @@ One common way to compare a random sample to a theoretical candidate distributio
 Here we simulated the random normal distribution sample and take each set's mediani to generate the qqdata. Then we take the known distribution and we plot their quantile function to see if the match with each other.
 
 ```{r}
-qqdata<-rep(NA,length(p))
+qqdata<-rep(NA,1000)
 for (i in seq(p)){
   data1<-rnorm(200,0,1)
   qqdata[i]<-median(data1)
 }
 x<-qorder(p,200,100)
-y<-quantile(qqdata,probs=p)
+y<-quantile(qqdata,probs=p,na.rm = TRUE)
 
 
 plot(x,y,asp=1,lwd=2,xlab="Theoretical quantile",ylab="Sample quantile")
@@ -175,7 +175,7 @@ qorder_mod<-function(p,n,k){
 ## Generate qq plot for sample max and theoretical largest order statistic distribution
 
 ```{r}
-qqdata1<-rep(NA,length(p))
+qqdata1<-rep(NA,1000)
 
 for (j in seq(p)){
   data2<-rnorm(200,0,1)
@@ -183,7 +183,7 @@ for (j in seq(p)){
 }
 
 x<-qorder_mod(p,200,200)
-y<-quantile(qqdata1,probs=p)
+y<-quantile(qqdata1,probs=p,na.rm=TRUE)
 
 plot(x,y,xlab="Theoretical quantile",ylab="Sample quantile")
 
