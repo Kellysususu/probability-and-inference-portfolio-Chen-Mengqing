@@ -23,3 +23,6 @@ https://github.com/Kellysususu/probability-and-inference-portfolio-Chen-Mengqing
 
 06-order-statistics:
 https://github.com/Kellysususu/probability-and-inference-portfolio-Chen-Mengqing/tree/master/06-order-statistics
+
+07-mle-and-mm:
+https://github.com/Kellysususu/probability-and-inference-portfolio-Chen-Mengqing/tree/master/07-mle-and-mm
