@@ -1,0 +1,614 @@
+---
+title: "07-mle-and-mm"
+author: "Kelly Chen"
+date: "11/6/2021"
+output: html_document
+---
+
+```{r}
+library(stats4)
+library(dplyr)
+Hmisc::getHdata(nhgh)
+d1 <- nhgh %>% 
+  filter(sex == "female") %>% 
+  filter(age >= 18) %>% 
+  select(gh, ht) %>% 
+  filter(1:n()<=1000)
+```
+
+## Introduction
+
+This is a tutorial in which I will explain how one might use MLE and MM to model Glycohemoglobin and Height of adult females. The data is from National Health and Nutrition Examination Survey 2009-2010 (NHANES), available from the Hmisc package. I will compare and contrast the two methods in addition to comparing and contrasting the choice of underlying distribution.
+
+**MLE(Maximum Likelihood Estimation)**: A method of estimating the parameters of an assumed probability distribution, given some observed data. This is achieved by maximizing a likelihood function so that, under the assumed statistical model, the observed data is most probable.
+
+**MM(Method of Moments)**: A method of estimation of population parameters. It starts by expressing the population moments as functions of the parameters of interest. Those expressions are then set equal to the sample moments.
+
+
+## Method of Moments (Variable: Glycohemoglobin(gh))
+
+## Estimates of parameters
+
+For the estimation of parameters, we would take the sampling distribution way to calculate the sample parameters of the distribution that we need.
+
+# Normal Distribution
+
+```{r}
+mm_norm_mean<-mean(d1$gh)
+mm_norm_sd<-sd(d1$gh)
+
+```
+
+# Gamma Distribution
+
+```{r}
+mm_gm_shape<-(mean(d1$gh))**2/var(d1$gh)
+mm_gm_scale=var(d1$gh)/mean(d1$gh)
+```
+
+# Weibull Distribution
+
+```{r}
+wei_mean<-function(lambda,k){
+  lambda*gamma(1+1/k)
+}
+
+lambda<-function(mean_bar,k){
+  mean_bar/gamma(1+1/k)
+}
+wei_variance<-function(mean_bar,k,var_bar){
+  (lambda(mean_bar,k)^2)*((gamma(1+2/k))-(gamma(1+1/k))^2)-var_bar
+}
+
+wei_k<-optimize(function(x){abs(wei_variance(mean_bar=mean(d1$gh),k=x,var_bar = var(d1$gh)))},lower = 0,upper = 50)
+wei_k<-wei_k$minimum
+wei_lambda<-lambda(mean(d1$gh),wei_k)
+```
+
+## Overlay estimated pdf onto histogram
+
+
+```{r}
+hist(d1$gh,main="Overlay pdf onto histogram of Glycohemoglobin(gh)",xlab=" Glycohemoglobin",breaks = 100,freq = FALSE,xlim = c(3,15))
+
+# Normal Distribution
+curve(dnorm(x,mm_norm_mean,mm_norm_sd),add = TRUE,col="green",lwd=3)
+
+# Gamma Distribution
+curve(dgamma(x,shape=mm_gm_shape,scale=mm_gm_scale),add=TRUE,col="red",lwd=3)
+
+#Weibull Distribution
+curve(dweibull(x,shape=wei_k,scale=wei_lambda),add=TRUE,col="pink",lwd=3)
+```
+
+We can see that the original histogram is highly skewed, and the pdf we estimated fits the sampled pdf well for all three distributions.
+
+## Overlay estimated CDF onto eCDF
+
+```{r}
+plot(ecdf(d1$gh),do.points=FALSE,lwd=3,main="Overlay Estimated CDF onto ECDF")
+# Normal Distribution
+curve(pnorm(x,mm_norm_mean,mm_norm_sd),add = TRUE,col="green",lwd=3)
+
+# Gamma Distribution
+curve(pgamma(x,shape=mm_gm_shape,scale=mm_gm_scale),add=TRUE,col="red",lwd=3)
+
+#Weibull Distribution
+curve(pweibull(x,shape=wei_k,scale=wei_lambda),add=TRUE,col="pink",lwd=3)
+```
+
+From the plot, we can see that the estimated CDF of the three distributions are a little deviated from the ECDF of the original data.
+
+## QQ plot(sample vs estimated dist)
+
+For the qqplot, we generate 5000 probability points to get the sample distribution.
+```{r}
+sample_p<-ppoints(5000)
+y<-quantile(d1$gh,probs = sample_p)
+```
+
+# Normal distribution
+
+```{r}
+mm_norm_qq<-qnorm(sample_p,mean=mm_norm_mean,sd=mm_norm_sd)
+plot(y,mm_norm_qq,main="QQ Plot of Normal distribution",lwd=2)
+abline(0,1,col="red")
+```
+
+This is the qq plot of normal distribution under method of moments, and we can see the sample quantile is deviated from the original quantile function at some extent.
+
+# Gamma Distribution
+
+```{r}
+mm_qq_gamma<-qgamma(sample_p,shape=mm_gm_shape,scale=mm_gm_scale)
+plot(y,mm_qq_gamma,main="QQ Plot gamma distribution",lwd=2)
+abline(a=0,b=1,col="red")
+```
+
+This is the qq plot of gamma distribution under method of moments, and we can see the sample quantile is deviated from the original quantile function at some extent.
+
+# Weibull Distribution
+
+```{r}
+mm_qq_wei<-qweibull(sample_p,shape=wei_k,scale=wei_lambda)
+plot(y,mm_qq_wei,main="QQ Plot of Weibull Distribution",lwd=2)
+abline(0,1,col="red")
+```
+
+This is the qq plot of Weibull distribution under method of moments, and we can see the sample quantile is deviated from the original quantile function at some extent.
+
+## Estimate Median
+
+# Normal Distribution
+
+For the normal distribution, the sample median is equal to the population median, so we can just take the median of the data and calculate the result.
+
+```{r}
+median(d1$gh)
+```
+
+As we can see, the estimated median under methods of moments with Normal distribution is 5.5.
+
+# Gamma Distribution
+
+For the gamma distribution, we can use qgamma to get the 50 percentile which is the estimated median, so we can just take the 50 percentile of the data and calculate the result.
+
+```{r}
+qgamma(0.5,shape=mm_gm_shape,scale=mm_gm_scale)
+```
+
+As we can see, the estimated median under methods of moments with Gamma distribution is 5.660259.
+
+# Weibull Distribution
+
+For the Weibull distribution, we can use qweibull to get the 50 percentile which is the estimated median, so we can just take the 50 percentile of the data and calculate the result.
+
+```{r}
+qweibull(0.5,shape = wei_k,scale=wei_lambda)
+```
+
+As we can see, the estimated median under methods of moments with Weibull distribution is 5.806483.
+
+## Maximum Likelihood Estimation (Variable: Glycohemoglobin(gh))
+
+Now let us take a look at how sampling distribution fits under the maximum likelihood estimation.
+
+## Estimates of parameters
+
+For the estimation of parameters, we would estimate the unknown parameter that maximizes the log likelihood.
+
+# Normal Distribution
+
+```{r}
+require(stats4)
+nLL_norm<-function(mean,sd){
+  fs<-dnorm(x=d1$gh,mean=mean,sd=sd,log=TRUE)
+  -sum(fs)
+}
+fit_norm<-mle(nLL_norm,start = list(mean=1,sd=1),method="L-BFGS-B",lower = c(0,0.01))
+```
+
+# Gamma Distribution
+
+```{r}
+nLL_gamma<-function(shape,scale){
+  fs<-dgamma(x=d1$gh,shape=shape,scale=scale,log=TRUE)
+  -sum(fs)
+}
+fit_gamma<-mle(nLL_gamma,start = list(shape=1,scale=1),method="L-BFGS-B",lower = c(0,0.01))
+```
+
+# Weibull Distribution
+
+```{r}
+nLL_wei<-function(shape,scale){
+  fs<-dweibull(x=d1$gh,shape=shape,scale=scale,log=TRUE)
+  -sum(fs)
+}
+fit_wei<-mle(nLL_wei,start = list(shape=1,scale=1),method="L-BFGS-B",lower = c(0,0.01))
+```
+
+## Overlay estimated pdf onto histogram
+
+# Normal Distribution
+
+```{r}
+hist(d1$gh,breaks = 100,main="Overlay PDF onto histogram of Glycohemoglobin(gh)",freq=FALSE)
+
+#Normal Distribution
+curve(dnorm(x,coef(fit_norm)[1],coef(fit_norm)[2]),add=TRUE,col="green",lwd=3)
+
+#Gamma Distribution
+curve(dgamma(x,shape=coef(fit_gamma)[1],scale=coef(fit_gamma)[2]),add=TRUE,col="red",lwd=3)
+
+#Weibull Distribution
+curve(dweibull(x,shape=coef(fit_wei)[1],scale=coef(fit_wei)[2]),add=TRUE,col="pink",lwd=3)
+```
+
+We can see that the original histogram is highly skewed, and the pdf we estimated fits the sampled pdf well for all three distributions.
+
+## Overlay estimated CDF onto eCDF
+
+
+```{r}
+plot(ecdf(d1$gh),main="Overlay CDF onto ECDF of Glycohemoglobin(gh)",do.points=FALSE)
+
+#Normal Distribution
+curve(pnorm(x,coef(fit_norm)[1],coef(fit_norm)[2]),add=TRUE,col="green",lwd=3)
+
+#Gamma Distribution
+curve(pgamma(x,shape=coef(fit_gamma)[1],scale=coef(fit_gamma)[2]),add=TRUE,col="red",lwd=3)
+
+#Weibull Distribution
+curve(pweibull(x,shape=coef(fit_wei)[1],scale=coef(fit_wei)[2]),add=TRUE,col="pink",lwd=3)
+
+```
+
+From the plot, we can see that the sampled CDF fits well with the original ecdf.
+
+## QQ plot(sample vs estimated dist)
+
+```{r}
+# Default
+rand<-seq(0.01,0.99,by=0.001)
+sample<-quantile(d1$gh,rand)
+```
+
+# Normal distribution
+
+```{r}
+
+mle_norm_qq<-qnorm(rand,mean=coef(fit_norm)[1],sd=coef(fit_norm)[2])
+plot(sample,mle_norm_qq,main="QQ Plot of Normal distribution with Maximum Likelihood",lwd=2)
+abline(0,1,col="red",asp=1)
+```
+
+This is the qq plot of Normal distribution under maximum likelihood, and we can see the sample quantile is deviated from the original quantile function at some extent.
+
+# Gamma Distribution
+
+```{r}
+mle_gamma_qq<-qgamma(rand,shape=coef(fit_gamma)[1],scale=coef(fit_gamma)[2])
+plot(sample,mle_gamma_qq,main="QQ Plot of Gamma distribution with Maximum Likelihood",lwd=2)
+abline(0,1,col="red",asp=1)
+```
+
+This is the qq plot of Gamma distribution under maximum likelihood, and we can see the sample quantile is deviated from the original quantile function at some extent.
+
+# Weibull Distribution
+
+```{r}
+
+mle_wei_qq<-qweibull(rand,shape=coef(fit_wei)[1],scale=coef(fit_wei)[2])
+plot(sample,mle_wei_qq,main="QQ Plot of Normal distribution with Maximum Likelihood",lwd=2)
+abline(0,1,col="red",asp=1)
+```
+
+This is the qq plot of Weibull distribution under maximum likelihood, and we can see the sample quantile is deviated from the original quantile function at some extent.
+
+## Estimate Median
+
+# Normal Distribution
+
+For the normal distribution, we can use the qnorm combined with the function we created earlier of the maximum likelihood, to retrieve the 50 percentile value which is the estimated median.
+
+```{r}
+qnorm(0.5,mean=coef(fit_norm)[1],sd=coef(fit_norm)[2])
+```
+
+As we can see, the estimated median under maximum likelihood with Normal distribution is 5.7246.
+
+# Gamma Distribution
+
+For the gamma distribution, we can use the qgamma combined with the function we created earlier of the maximum likelihood, to retrieve the 50 percentile value which is the estimated median.
+
+```{r}
+qgamma(0.5,shape=coef(fit_gamma)[1],scale=coef(fit_gamma)[2])
+```
+
+As we can see, the estimated median under maximum likelihood with Gamma distribution is 5.677983.
+
+# Weibull Distribution
+
+For the Weibull distribution, we can use qweibull to get the 50 percentile which is the estimated median, so we can just take the 50 percentile of the data and calculate the result.
+
+```{r}
+qweibull(0.5,shape=coef(fit_wei)[1],scale=coef(fit_wei)[2])
+```
+
+As we can see, the estimated median under maximum likelihood with Weibull distribution is 5.64902.
+
+
+
+## Method of Moments (Height)
+
+## Estimates of parameters
+
+For the estimation of parameters, we would take the sampling distribution way to calculate the sample parameters of the distribution that we need.
+
+# Normal Distribution
+
+```{r}
+
+mm_norm_mean<-mean(d1$ht)
+mm_norm_sd<-sd(d1$ht)
+
+```
+
+# Gamma Distribution
+
+```{r}
+mm_gm_shape<-(mean(d1$ht))**2/var(d1$ht)
+mm_gm_scale=var(d1$ht)/mean(d1$ht)
+```
+
+# Weibull Distribution
+
+```{r}
+wei_mean<-function(lambda,k){
+  lambda*gamma(1+1/k)
+}
+
+lambda<-function(mean_bar,k){
+  mean_bar/gamma(1+1/k)
+}
+wei_variance<-function(mean_bar,k,var_bar){
+  (lambda(mean_bar,k)^2)*((gamma(1+2/k))-(gamma(1+1/k))^2)-var_bar
+}
+
+wei_k<-optimize(function(x){abs(wei_variance(mean_bar=mean(d1$ht),k=x,var_bar = var(d1$ht)))},lower = 0,upper = 50)
+wei_k<-wei_k$minimum
+wei_lambda<-lambda(mean(d1$ht),wei_k)
+```
+
+## Overlay estimated pdf onto histogram
+
+```{r}
+hist(d1$ht,main="Overlay pdf onto histogram of Height(ht)",xlab=" Height",breaks = 100,freq = FALSE)
+
+
+# Normal Distribution
+curve(dnorm(x,mm_norm_mean,mm_norm_sd),add = TRUE,col="green",lwd=3)
+
+# Gamma Distribution
+curve(dgamma(x,shape=mm_gm_shape,scale=mm_gm_scale),add=TRUE,col="red",lwd=3)
+
+#Weibull Distribution
+curve(dweibull(x,shape=wei_k,scale=wei_lambda),add=TRUE,col="pink",lwd=3)
+```
+
+We can see that the original histogram is normally distributed, and the pdf we estimated fits the sampled pdf well for all three distributions except the weibull distribution, which is a little left skewed.
+
+## Overlay estimated CDF onto eCDF
+
+```{r}
+plot(ecdf(d1$ht),do.points=FALSE,lwd=3,main="Overlay Estimated CDF onto ECDF")
+# Normal Distribution
+curve(pnorm(x,mm_norm_mean,mm_norm_sd),add = TRUE,col="green",lwd=3)
+
+# Gamma Distribution
+curve(pgamma(x,shape=mm_gm_shape,scale=mm_gm_scale),add=TRUE,col="red",lwd=3)
+
+#Weibull Distribution
+curve(pweibull(x,shape=wei_k,scale=wei_lambda),add=TRUE,col="pink",lwd=3)
+```
+
+From the plot, we can see that the estimated CDF of the three distributions are a little deviated from the ECDF of the original data.
+
+## QQ plot(sample vs estimated dist)
+
+For the qqplot, we generate 5000 probability points to get the sample distribution.
+```{r}
+sample_p<-ppoints(5000)
+y<-quantile(d1$ht,probs = sample_p)
+```
+
+# Normal distribution
+
+```{r}
+mm_norm_qq<-qnorm(sample_p,mean=mm_norm_mean,sd=mm_norm_sd)
+plot(y,mm_norm_qq,main="QQ Plot of Normal distribution",lwd=2)
+abline(0,1,col="red")
+```
+
+This is the qq plot of normal distribution under method of moments, and we can see the sample quantile fits well with the original quantile.
+
+# Gamma Distribution
+
+```{r}
+mm_qq_gamma<-qgamma(sample_p,shape=mm_gm_shape,scale=mm_gm_scale)
+plot(y,mm_qq_gamma,main="QQ Plot gamma distribution",lwd=2)
+abline(a=0,b=1,col="red")
+```
+
+This is the qq plot of gamma distribution under method of moments, and we can see the sample quantile fits well with the original quantile.
+
+# Weibull Distribution
+
+```{r}
+mm_qq_wei<-qweibull(sample_p,shape=wei_k,scale=wei_lambda)
+plot(y,mm_qq_wei,main="QQ Plot of Weibull Distribution",lwd=2)
+abline(0,1,col="red")
+```
+
+This is the qq plot of weibull distribution under method of moments, and we can see the sample quantile is a little deviated from the original quantile.
+
+## Estimate Median
+
+# Normal Distribution
+
+For the normal distribution, the sample median is equal to the population median, so we can just take the median of the data and calculate the result.
+
+```{r}
+median(d1$ht)
+```
+
+As we can see, the estimated median under method of moments with Normal distribution is 160.8.
+
+# Gamma Distribution
+
+For the gamma distribution, we can use qgamma to get the 50 percentile which is the estimated median, so we can just take the 50 percentile of the data and calculate the result.
+
+```{r}
+qgamma(0.5,shape=mm_gm_shape,scale=mm_gm_scale)
+```
+
+As we can see, the estimated median under method of moments with Gamma distribution is 160.6308.
+
+# Weibull Distribution
+
+For the Weibull distribution, we can use qweibull to get the 50 percentile which is the estimated median, so we can just take the 50 percentile of the data and calculate the result.
+
+```{r}
+qweibull(0.5,shape = wei_k,scale=wei_lambda)
+```
+
+As we can see, the estimated median under method of moments with Weibull distribution is 161.8065.
+
+## Maximum Likelihood Estimation (Variable: Height(ht))
+
+Now let us take a look at how sampling distribution fits under the maximum likelihood estimation.
+
+## Estimates of parameters
+
+# Normal Distribution
+
+For the estimation of parameters, we would estimate the unknown parameter that maximizes the log likelihood.
+
+```{r}
+require(stats4)
+nLL_norm<-function(mean,sd){
+  fs<-dnorm(x=d1$ht,mean=mean,sd=sd,log=TRUE)
+  -sum(fs)
+}
+fit_norm<-mle(nLL_norm,start = list(mean=1,sd=1),method="L-BFGS-B",lower = c(0,0.01))
+```
+
+# Gamma Distribution
+
+```{r}
+nLL_gamma<-function(shape,scale){
+  fs<-dgamma(x=d1$ht,shape=shape,scale=scale,log=TRUE)
+  -sum(fs)
+}
+fit_gamma<-mle(nLL_gamma,start = list(shape=1,scale=1),method="L-BFGS-B",lower = c(0,0.01))
+```
+
+# Weibull Distribution
+
+```{r}
+nLL_wei<-function(shape,scale){
+  fs<-dweibull(x=d1$ht,shape=shape,scale=scale,log=TRUE)
+  -sum(fs)
+}
+fit_wei<-mle(nLL_wei,start = list(shape=1,scale=1),method="L-BFGS-B",lower = c(0,0.01))
+```
+
+## Overlay estimated pdf onto histogram
+
+# Normal Distribution
+
+```{r}
+hist(d1$ht,breaks = 100,main="Overlay PDF onto histogram of Height(ht)",freq=FALSE)
+
+#Normal Distribution
+curve(dnorm(x,coef(fit_norm)[1],coef(fit_norm)[2]),add=TRUE,col="green",lwd=3)
+
+#Gamma Distribution
+curve(dgamma(x,shape=coef(fit_gamma)[1],scale=coef(fit_gamma)[2]),add=TRUE,col="red",lwd=3)
+
+#Weibull Distribution
+curve(dweibull(x,shape=coef(fit_wei)[1],scale=coef(fit_wei)[2]),add=TRUE,col="pink",lwd=3)
+```
+
+We can see that the original histogram is normally distributed, and the pdf we estimated fits the sampled pdf well for all three distributions except the weibull distribution, which is a little left skewed.
+
+## Overlay estimated CDF onto eCDF
+
+```{r}
+plot(ecdf(d1$ht),main="Overlay CDF onto ECDF of Glycohemoglobin(gh)",do.points=FALSE)
+
+#Normal Distribution
+curve(pnorm(x,coef(fit_norm)[1],coef(fit_norm)[2]),add=TRUE,col="green",lwd=3)
+
+#Gamma Distribution
+curve(pgamma(x,shape=coef(fit_gamma)[1],scale=coef(fit_gamma)[2]),add=TRUE,col="red",lwd=3)
+
+#Weibull Distribution
+curve(pweibull(x,shape=coef(fit_wei)[1],scale=coef(fit_wei)[2]),add=TRUE,col="pink",lwd=3)
+
+```
+
+From the plot, we can see that the estimated CDF of the three distributions are a little deviated from the ECDF of the original data.
+
+## QQ plot(sample vs estimated dist)
+
+```{r}
+# Default
+rand<-seq(0.01,0.99,by=0.001)
+sample<-quantile(d1$ht,rand)
+```
+
+# Normal distribution
+
+```{r}
+
+mle_norm_qq<-qnorm(rand,mean=coef(fit_norm)[1],sd=coef(fit_norm)[2])
+plot(sample,mle_norm_qq,main="QQ Plot of Normal distribution with Maximum Likelihood",lwd=2)
+abline(0,1,col="red",asp=1)
+```
+
+This is the qq plot of normal distribution under maximum likelihood, and we can see the sample quantile fits well with the original quantile.
+
+# Gamma Distribution
+
+```{r}
+mle_gamma_qq<-qgamma(rand,shape=coef(fit_gamma)[1],scale=coef(fit_gamma)[2])
+plot(sample,mle_gamma_qq,main="QQ Plot of Gamma distribution with Maximum Likelihood",lwd=2)
+abline(0,1,col="red",asp=1)
+```
+
+This is the qq plot of gamma distribution under maximum likelihood, and we can see the sample quantile fits well with the original quantile.
+
+# Weibull Distribution
+
+```{r}
+
+mle_wei_qq<-qweibull(rand,shape=coef(fit_wei)[1],scale=coef(fit_wei)[2])
+plot(sample,mle_wei_qq,main="QQ Plot of Normal distribution with Maximum Likelihood",lwd=2)
+abline(0,1,col="red",asp=1)
+```
+
+This is the qq plot of weibull distribution under maximum likelihood, and we can see the sample quantile fits large percent of the original quantile.
+
+## Estimate Median
+
+# Normal Distribution
+
+For the normal distribution, we can use the qnorm combined with the function we created earlier of the maximum likelihood, to retrieve the 50 percentile value which is the estimated median.
+
+```{r}
+qnorm(0.5,mean=coef(fit_norm)[1],sd=coef(fit_norm)[2])
+```
+
+As we can see, the estimated median under maximum likelihood with Normal distribution is 160.7419.
+
+# Gamma Distribution
+
+For the gamma distribution, we can use the qgamma combined with the function we created earlier of the maximum likelihood, to retrieve the 50 percentile value which is the estimated median.
+
+```{r}
+qgamma(0.5,shape=coef(fit_gamma)[1],scale=coef(fit_gamma)[2])
+```
+
+As we can see, the estimated median under maximum likelihood with Gamma distribution is 160.6309.
+
+# Weibull Distribution
+
+For the Weibull distribution, we can use qweibull to get the 50 percentile which is the estimated median, so we can just take the 50 percentile of the data and calculate the result.
+
+```{r}
+qweibull(0.5,shape=coef(fit_wei)[1],scale=coef(fit_wei)[2])
+```
+
+As we can see, the estimated median under maximum likelihood with Weibull distribution is 161.5156.
