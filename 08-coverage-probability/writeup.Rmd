@@ -1,0 +1,106 @@
+---
+title: "writeup"
+author: "Kelly Chen"
+date: "11/23/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(dplyr)
+```
+
+## Step 1 
+
+**Generate a single sample from a standard normal distribution of size N = 201.**
+
+```{r}
+set.seed(100)
+size<-201
+data<-rnorm(size)
+mle_mean<-mean(data)
+mle_sd<-sqrt((size-1)/size*var(data))
+hist(data,freq = FALSE,breaks=30)
+curve(dnorm(x,mean=mle_mean,sd=mle_sd),add=TRUE,col="red",lwd=2)
+```
+
+We utilized maximum likelihood estimation to estimate the mean and standard deviation of the data we generated from rnorm(). We overlayed the PDF on the histogram to show the sampled normal distribution.
+
+## Step 2
+
+**Approximate the sampling distribution of the median, conditional on the estimate of the distribution in the previous step**
+
+```{r}
+
+r<-2000
+data_1<-rnorm(r,mle_mean,mle_sd)
+median<-rep(NA,r)
+for (i in 1:r){
+  s<-sample(data_1,length(data_1),replace=TRUE)
+  median[i]<-median(s)
+}
+hist(median,breaks=100)
+
+
+```
+ 
+ From the estimated parameters from mle previously, we simulated the median for 2000 times and get the sampled distribution of the median. The histogram is showing the distribution of median which is also normally distributed.
+ 
+## Step 3 
+ 
+**Calculate a 95% confidence interval from the approximated sampling distribution**
+ 
+```{r}
+alpha<-0.05
+ci<-quantile(median,c(alpha/2,1-alpha/2))
+ci
+
+ci[1]<0
+ci[2]>0
+```
+
+When we are looing for the 95% confidence interval we set alpha as 0.05, so the confidence interval quantile would be (alpha/2,1-alpha/2). We then use quantile function to get the value of 2.5% in the sampled data, which is -0.04819533; and the value at 97.5%, which is 0.05962445. We could say that approximately 95% of the median in the sampled distribution is from -0.04819533 to 0.05962445. We also determined that the confidence interval is valid by checking if the lower bounds is less than zero and the upper bounds is greater than .05 as indicated by the plot.
+
+**Explain The concept of coverage probability**
+
+In statistics, the coverage probability of a technique for calculating a confidence interval is the proportion of the time that the interval contains the true value of interest.
+
+A confidence interval (CI) is an interval estimate that potentially contains the population parameter. Because the CI is an estimate, it is computed from a sample. A confidence interval for a parameter is derived by knowing (or approximating) the sampling distribution of a statistic. 
+
+Due to sampling variation, the confidence interval for a particular sample might not contain the parameter. A 95% confidence interval means that if you collect a large number of samples and construct the corresponding confidence intervals, then about 95% of the intervals will contain or cover the parameter.
+
+## Step 4 
+
+**Use simulation to report the result**
+
+```{r}
+ci_median<-function(n=2000,size=201){
+  data<-rnorm(size)
+  mle_mean<-mean(data)
+  mle_sd<-sqrt(((size-1)/size)*var(data))
+  median<-rbeta(n,size,size) %>%qnorm(mean=mle_mean,sd=mle_sd)
+  alpha<-0.05
+  ci<-quantile(median,c(alpha/2,1-alpha/2))
+  return (ci[1] < 0 & ci[2] > 0)
+}
+
+ci_list<-NA
+for (i in 1:2000){
+  ci_list[i]<-ci_median()
+} 
+
+
+mean(ci_list)
+
+```
+
+Here we simulated our previous steps for 2000 times and we will return true if the confidence interval is valid. Then we took the mean of the result and found out that 91% of the time our confidence interval is covering the population parameters. The .9115 represents the coverage probability of the result.
+
+## Step 5
+
+**Describe how you might change the simulation to learn more about the operating characteristics of your chosen method for constructing the 95% confidence interval.**
+
+Instead of Mle method to get the sample distribution, we can also use kernel density function or method of moments to sample the data. I can also apply shortcut for constructing the confidence interval such as t.test.
