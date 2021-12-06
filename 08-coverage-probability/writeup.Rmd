@@ -103,4 +103,4 @@ Here we simulated our previous steps for 2000 times and we will return true if t
 
 **Describe how you might change the simulation to learn more about the operating characteristics of your chosen method for constructing the 95% confidence interval.**
 
-Instead of Mle method to get the sample distribution, we can also use kernel density function or method of moments to sample the data. I can also apply shortcut for constructing the confidence interval such as t.test.
+First I can try to change the sample sizes of the simulation, since the larger the sample sizes the more accurate the confidence interval might be. Another modification could be changing the number of simulation, the larger the number of simulation, the confidence interval would also be more accurate.
