@@ -36,15 +36,22 @@ For the estimation of parameters, we would take the sampling distribution way to
 ```{r}
 mm_norm_mean<-mean(d1$gh)
 mm_norm_sd<-sd(d1$gh)
-
+mm_norm_mean
+mm_norm_sd
 ```
+
+For the normal distribution, the sample mean would be the mean of population and the sample standard deviation is also the sd of population.
 
 # Gamma Distribution
 
 ```{r}
 mm_gm_shape<-(mean(d1$gh))**2/var(d1$gh)
 mm_gm_scale=var(d1$gh)/mean(d1$gh)
+mm_gm_shape
+mm_gm_scale
 ```
+
+In Gamma distribution, the estimated shape parameter is 29.59754 and the estimated scale parameter is 0.1934147.
 
 # Weibull Distribution
 
@@ -63,7 +70,12 @@ wei_variance<-function(mean_bar,k,var_bar){
 wei_k<-optimize(function(x){abs(wei_variance(mean_bar=mean(d1$gh),k=x,var_bar = var(d1$gh)))},lower = 0,upper = 50)
 wei_k<-wei_k$minimum
 wei_lambda<-lambda(mean(d1$gh),wei_k)
+
+wei_k
+wei_lambda
 ```
+
+In webull distribution, we estimated the lambda as the solution of a function which is 6.353163, and we estimated the k to be 6.151309.
 
 ## Overlay estimated pdf onto histogram
 
@@ -79,6 +91,8 @@ curve(dgamma(x,shape=mm_gm_shape,scale=mm_gm_scale),add=TRUE,col="red",lwd=3)
 
 #Weibull Distribution
 curve(dweibull(x,shape=wei_k,scale=wei_lambda),add=TRUE,col="pink",lwd=3)
+
+legend(x="right",legend=c("Normal","Gamma","Weibull"),lty=c(1,1,1),col=c("green","red","pink"),lwd=3)
 ```
 
 We can see that the original histogram is highly skewed, and the pdf we estimated fits the sampled pdf well for all three distributions.
@@ -95,6 +109,8 @@ curve(pgamma(x,shape=mm_gm_shape,scale=mm_gm_scale),add=TRUE,col="red",lwd=3)
 
 #Weibull Distribution
 curve(pweibull(x,shape=wei_k,scale=wei_lambda),add=TRUE,col="pink",lwd=3)
+
+legend(x="right",legend=c("Normal","Gamma","Weibull"),lty=c(1,1,1),col=c("green","red","pink"),lwd=3)
 ```
 
 From the plot, we can see that the estimated CDF of the three distributions are a little deviated from the ECDF of the original data.
@@ -223,6 +239,8 @@ curve(dgamma(x,shape=coef(fit_gamma)[1],scale=coef(fit_gamma)[2]),add=TRUE,col="
 
 #Weibull Distribution
 curve(dweibull(x,shape=coef(fit_wei)[1],scale=coef(fit_wei)[2]),add=TRUE,col="pink",lwd=3)
+
+legend(x="right",legend=c("Normal","Gamma","Weibull"),lty=c(1,1,1),col=c("green","red","pink"),lwd=3)
 ```
 
 We can see that the original histogram is highly skewed, and the pdf we estimated fits the sampled pdf well for all three distributions.
@@ -241,6 +259,8 @@ curve(pgamma(x,shape=coef(fit_gamma)[1],scale=coef(fit_gamma)[2]),add=TRUE,col="
 
 #Weibull Distribution
 curve(pweibull(x,shape=coef(fit_wei)[1],scale=coef(fit_wei)[2]),add=TRUE,col="pink",lwd=3)
+
+legend(x="right",legend=c("Normal","Gamma","Weibull"),lty=c(1,1,1),col=c("green","red","pink"),lwd=3)
 
 ```
 
@@ -375,6 +395,7 @@ curve(dgamma(x,shape=mm_gm_shape,scale=mm_gm_scale),add=TRUE,col="red",lwd=3)
 
 #Weibull Distribution
 curve(dweibull(x,shape=wei_k,scale=wei_lambda),add=TRUE,col="pink",lwd=3)
+legend(x="right",legend=c("Normal","Gamma","Weibull"),lty=c(1,1,1),col=c("green","red","pink"),lwd=3)
 ```
 
 We can see that the original histogram is normally distributed, and the pdf we estimated fits the sampled pdf well for all three distributions except the weibull distribution, which is a little left skewed.
@@ -391,6 +412,8 @@ curve(pgamma(x,shape=mm_gm_shape,scale=mm_gm_scale),add=TRUE,col="red",lwd=3)
 
 #Weibull Distribution
 curve(pweibull(x,shape=wei_k,scale=wei_lambda),add=TRUE,col="pink",lwd=3)
+
+legend(x="right",legend=c("Normal","Gamma","Weibull"),lty=c(1,1,1),col=c("green","red","pink"),lwd=3)
 ```
 
 From the plot, we can see that the estimated CDF of the three distributions are a little deviated from the ECDF of the original data.
@@ -519,6 +542,7 @@ curve(dgamma(x,shape=coef(fit_gamma)[1],scale=coef(fit_gamma)[2]),add=TRUE,col="
 
 #Weibull Distribution
 curve(dweibull(x,shape=coef(fit_wei)[1],scale=coef(fit_wei)[2]),add=TRUE,col="pink",lwd=3)
+legend(x="right",legend=c("Normal","Gamma","Weibull"),lty=c(1,1,1),col=c("green","red","pink"),lwd=3)
 ```
 
 We can see that the original histogram is normally distributed, and the pdf we estimated fits the sampled pdf well for all three distributions except the weibull distribution, which is a little left skewed.
@@ -536,6 +560,8 @@ curve(pgamma(x,shape=coef(fit_gamma)[1],scale=coef(fit_gamma)[2]),add=TRUE,col="
 
 #Weibull Distribution
 curve(pweibull(x,shape=coef(fit_wei)[1],scale=coef(fit_wei)[2]),add=TRUE,col="pink",lwd=3)
+
+legend(x="right",legend=c("Normal","Gamma","Weibull"),lty=c(1,1,1),col=c("green","red","pink"),lwd=3)
 
 ```
 
