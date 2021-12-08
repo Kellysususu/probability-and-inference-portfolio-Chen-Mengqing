@@ -202,7 +202,10 @@ nLL_norm<-function(mean,sd){
   -sum(fs)
 }
 fit_norm<-mle(nLL_norm,start = list(mean=1,sd=1),method="L-BFGS-B",lower = c(0,0.01))
+fit_norm
 ```
+
+From the mle method in normal distribution, our estimated parameters are mean (5.72460), standard deviation(1.05172)
 
 # Gamma Distribution
 
@@ -212,7 +215,10 @@ nLL_gamma<-function(shape,scale){
   -sum(fs)
 }
 fit_gamma<-mle(nLL_gamma,start = list(shape=1,scale=1),method="L-BFGS-B",lower = c(0,0.01))
+fit_gamma
 ```
+
+From the mle method in gamma distribution, our estimated parameters are shape (40.7065048), scale(0.1406358 )
 
 # Weibull Distribution
 
@@ -222,7 +228,10 @@ nLL_wei<-function(shape,scale){
   -sum(fs)
 }
 fit_wei<-mle(nLL_wei,start = list(shape=1,scale=1),method="L-BFGS-B",lower = c(0,0.01))
+fit_wei
 ```
+
+From the mle method in weibull distribution, our estimated parameters are shape (4.125254), scale(6.173885)
 
 ## Overlay estimated pdf onto histogram
 
@@ -352,15 +361,22 @@ For the estimation of parameters, we would take the sampling distribution way to
 
 mm_norm_mean<-mean(d1$ht)
 mm_norm_sd<-sd(d1$ht)
-
+mm_norm_mean
+mm_norm_sd
 ```
+
+In the MM method for normal distribution, the estimated mean is 160.7419, and the standard deviation is 7.320161
 
 # Gamma Distribution
 
 ```{r}
 mm_gm_shape<-(mean(d1$ht))**2/var(d1$ht)
 mm_gm_scale=var(d1$ht)/mean(d1$ht)
+mm_gm_shape
+mm_gm_scale
 ```
+
+In the MM method for gamma distribution, the estimated shape is 482.1886, and the scale is 0.333359
 
 # Weibull Distribution
 
@@ -379,7 +395,11 @@ wei_variance<-function(mean_bar,k,var_bar){
 wei_k<-optimize(function(x){abs(wei_variance(mean_bar=mean(d1$ht),k=x,var_bar = var(d1$ht)))},lower = 0,upper = 50)
 wei_k<-wei_k$minimum
 wei_lambda<-lambda(mean(d1$ht),wei_k)
+wei_k
+wei_lambda
 ```
+
+In the MM method for weibull distribution, we estimated the k as 27.45937 and the lambda as 163.9807
 
 ## Overlay estimated pdf onto histogram
 
@@ -505,7 +525,10 @@ nLL_norm<-function(mean,sd){
   -sum(fs)
 }
 fit_norm<-mle(nLL_norm,start = list(mean=1,sd=1),method="L-BFGS-B",lower = c(0,0.01))
+fit_norm
 ```
+
+For the height in MLE methods with normal distribution, we estimated that the mean as 160.741901, and the sd as 7.316502.
 
 # Gamma Distribution
 
@@ -515,7 +538,10 @@ nLL_gamma<-function(shape,scale){
   -sum(fs)
 }
 fit_gamma<-mle(nLL_gamma,start = list(shape=1,scale=1),method="L-BFGS-B",lower = c(0,0.01))
+fit_gamma
 ```
+
+For the height in MLE methods with gamma distribution, we estimated that the shape as 479.6460830, and the scale as 0.3351275.
 
 # Weibull Distribution
 
@@ -525,7 +551,10 @@ nLL_wei<-function(shape,scale){
   -sum(fs)
 }
 fit_wei<-mle(nLL_wei,start = list(shape=1,scale=1),method="L-BFGS-B",lower = c(0,0.01))
+fit_wei
 ```
+
+For the height in MLE methods with weibull distribution, we estimated that the shape as 21.85398, and the scale as 164.24719 .
 
 ## Overlay estimated pdf onto histogram
 
