@@ -345,7 +345,17 @@ nLL_norm&lt;-function(mean,sd){
   fs&lt;-dnorm(x=d1$gh,mean=mean,sd=sd,log=TRUE)
   -sum(fs)
 }
-fit_norm&lt;-mle(nLL_norm,start = list(mean=1,sd=1),method=&quot;L-BFGS-B&quot;,lower = c(0,0.01))</code></pre>
+fit_norm&lt;-mle(nLL_norm,start = list(mean=1,sd=1),method=&quot;L-BFGS-B&quot;,lower = c(0,0.01))
+fit_norm</code></pre>
+<pre><code>## 
+## Call:
+## mle(minuslogl = nLL_norm, start = list(mean = 1, sd = 1), method = &quot;L-BFGS-B&quot;, 
+##     lower = c(0, 0.01))
+## 
+## Coefficients:
+##    mean      sd 
+## 5.72460 1.05172</code></pre>
+<p>From the mle method in normal distribution, our estimated parameters are mean (5.72460), standard deviation(1.05172)</p>
 </div>
 <div id="gamma-distribution-3" class="section level1">
 <h1>Gamma Distribution</h1>
@@ -353,7 +363,17 @@ fit_norm&lt;-mle(nLL_norm,start = list(mean=1,sd=1),method=&quot;L-BFGS-B&quot;,
   fs&lt;-dgamma(x=d1$gh,shape=shape,scale=scale,log=TRUE)
   -sum(fs)
 }
-fit_gamma&lt;-mle(nLL_gamma,start = list(shape=1,scale=1),method=&quot;L-BFGS-B&quot;,lower = c(0,0.01))</code></pre>
+fit_gamma&lt;-mle(nLL_gamma,start = list(shape=1,scale=1),method=&quot;L-BFGS-B&quot;,lower = c(0,0.01))
+fit_gamma</code></pre>
+<pre><code>## 
+## Call:
+## mle(minuslogl = nLL_gamma, start = list(shape = 1, scale = 1), 
+##     method = &quot;L-BFGS-B&quot;, lower = c(0, 0.01))
+## 
+## Coefficients:
+##      shape      scale 
+## 40.7065048  0.1406358</code></pre>
+<p>From the mle method in gamma distribution, our estimated parameters are shape (40.7065048), scale(0.1406358 )</p>
 </div>
 <div id="weibull-distribution-3" class="section level1">
 <h1>Weibull Distribution</h1>
@@ -361,7 +381,17 @@ fit_gamma&lt;-mle(nLL_gamma,start = list(shape=1,scale=1),method=&quot;L-BFGS-B&
   fs&lt;-dweibull(x=d1$gh,shape=shape,scale=scale,log=TRUE)
   -sum(fs)
 }
-fit_wei&lt;-mle(nLL_wei,start = list(shape=1,scale=1),method=&quot;L-BFGS-B&quot;,lower = c(0,0.01))</code></pre>
+fit_wei&lt;-mle(nLL_wei,start = list(shape=1,scale=1),method=&quot;L-BFGS-B&quot;,lower = c(0,0.01))
+fit_wei</code></pre>
+<pre><code>## 
+## Call:
+## mle(minuslogl = nLL_wei, start = list(shape = 1, scale = 1), 
+##     method = &quot;L-BFGS-B&quot;, lower = c(0, 0.01))
+## 
+## Coefficients:
+##    shape    scale 
+## 4.125254 6.173885</code></pre>
+<p>From the mle method in weibull distribution, our estimated parameters are shape (4.125254), scale(6.173885)</p>
 <div id="overlay-estimated-pdf-onto-histogram-1" class="section level2">
 <h2>Overlay estimated pdf onto histogram</h2>
 </div>
@@ -464,12 +494,22 @@ abline(0,1,col=&quot;red&quot;,asp=1)</code></pre>
 <div id="normal-distribution-7" class="section level1">
 <h1>Normal Distribution</h1>
 <pre class="r"><code>mm_norm_mean&lt;-mean(d1$ht)
-mm_norm_sd&lt;-sd(d1$ht)</code></pre>
+mm_norm_sd&lt;-sd(d1$ht)
+mm_norm_mean</code></pre>
+<pre><code>## [1] 160.7419</code></pre>
+<pre class="r"><code>mm_norm_sd</code></pre>
+<pre><code>## [1] 7.320161</code></pre>
+<p>In the MM method for normal distribution, the estimated mean is 160.7419, and the standard deviation is 7.320161</p>
 </div>
 <div id="gamma-distribution-6" class="section level1">
 <h1>Gamma Distribution</h1>
 <pre class="r"><code>mm_gm_shape&lt;-(mean(d1$ht))**2/var(d1$ht)
-mm_gm_scale=var(d1$ht)/mean(d1$ht)</code></pre>
+mm_gm_scale=var(d1$ht)/mean(d1$ht)
+mm_gm_shape</code></pre>
+<pre><code>## [1] 482.1886</code></pre>
+<pre class="r"><code>mm_gm_scale</code></pre>
+<pre><code>## [1] 0.333359</code></pre>
+<p>In the MM method for gamma distribution, the estimated shape is 482.1886, and the scale is 0.333359</p>
 </div>
 <div id="weibull-distribution-6" class="section level1">
 <h1>Weibull Distribution</h1>
@@ -486,7 +526,12 @@ wei_variance&lt;-function(mean_bar,k,var_bar){
 
 wei_k&lt;-optimize(function(x){abs(wei_variance(mean_bar=mean(d1$ht),k=x,var_bar = var(d1$ht)))},lower = 0,upper = 50)
 wei_k&lt;-wei_k$minimum
-wei_lambda&lt;-lambda(mean(d1$ht),wei_k)</code></pre>
+wei_lambda&lt;-lambda(mean(d1$ht),wei_k)
+wei_k</code></pre>
+<pre><code>## [1] 27.45937</code></pre>
+<pre class="r"><code>wei_lambda</code></pre>
+<pre><code>## [1] 163.9807</code></pre>
+<p>In the MM method for weibull distribution, we estimated the k as 27.45937 and the lambda as 163.9807</p>
 <div id="overlay-estimated-pdf-onto-histogram-2" class="section level2">
 <h2>Overlay estimated pdf onto histogram</h2>
 <pre class="r"><code>hist(d1$ht,main=&quot;Overlay pdf onto histogram of Height(ht)&quot;,xlab=&quot; Height&quot;,breaks = 100,freq = FALSE)
@@ -590,7 +635,17 @@ nLL_norm&lt;-function(mean,sd){
   fs&lt;-dnorm(x=d1$ht,mean=mean,sd=sd,log=TRUE)
   -sum(fs)
 }
-fit_norm&lt;-mle(nLL_norm,start = list(mean=1,sd=1),method=&quot;L-BFGS-B&quot;,lower = c(0,0.01))</code></pre>
+fit_norm&lt;-mle(nLL_norm,start = list(mean=1,sd=1),method=&quot;L-BFGS-B&quot;,lower = c(0,0.01))
+fit_norm</code></pre>
+<pre><code>## 
+## Call:
+## mle(minuslogl = nLL_norm, start = list(mean = 1, sd = 1), method = &quot;L-BFGS-B&quot;, 
+##     lower = c(0, 0.01))
+## 
+## Coefficients:
+##       mean         sd 
+## 160.741901   7.316502</code></pre>
+<p>For the height in MLE methods with normal distribution, we estimated that the mean as 160.741901, and the sd as 7.316502.</p>
 </div>
 <div id="gamma-distribution-9" class="section level1">
 <h1>Gamma Distribution</h1>
@@ -598,7 +653,17 @@ fit_norm&lt;-mle(nLL_norm,start = list(mean=1,sd=1),method=&quot;L-BFGS-B&quot;,
   fs&lt;-dgamma(x=d1$ht,shape=shape,scale=scale,log=TRUE)
   -sum(fs)
 }
-fit_gamma&lt;-mle(nLL_gamma,start = list(shape=1,scale=1),method=&quot;L-BFGS-B&quot;,lower = c(0,0.01))</code></pre>
+fit_gamma&lt;-mle(nLL_gamma,start = list(shape=1,scale=1),method=&quot;L-BFGS-B&quot;,lower = c(0,0.01))
+fit_gamma</code></pre>
+<pre><code>## 
+## Call:
+## mle(minuslogl = nLL_gamma, start = list(shape = 1, scale = 1), 
+##     method = &quot;L-BFGS-B&quot;, lower = c(0, 0.01))
+## 
+## Coefficients:
+##       shape       scale 
+## 479.6460830   0.3351275</code></pre>
+<p>For the height in MLE methods with gamma distribution, we estimated that the shape as 479.6460830, and the scale as 0.3351275.</p>
 </div>
 <div id="weibull-distribution-9" class="section level1">
 <h1>Weibull Distribution</h1>
@@ -606,7 +671,17 @@ fit_gamma&lt;-mle(nLL_gamma,start = list(shape=1,scale=1),method=&quot;L-BFGS-B&
   fs&lt;-dweibull(x=d1$ht,shape=shape,scale=scale,log=TRUE)
   -sum(fs)
 }
-fit_wei&lt;-mle(nLL_wei,start = list(shape=1,scale=1),method=&quot;L-BFGS-B&quot;,lower = c(0,0.01))</code></pre>
+fit_wei&lt;-mle(nLL_wei,start = list(shape=1,scale=1),method=&quot;L-BFGS-B&quot;,lower = c(0,0.01))
+fit_wei</code></pre>
+<pre><code>## 
+## Call:
+## mle(minuslogl = nLL_wei, start = list(shape = 1, scale = 1), 
+##     method = &quot;L-BFGS-B&quot;, lower = c(0, 0.01))
+## 
+## Coefficients:
+##     shape     scale 
+##  21.85398 164.24719</code></pre>
+<p>For the height in MLE methods with weibull distribution, we estimated that the shape as 21.85398, and the scale as 164.24719 .</p>
 <div id="overlay-estimated-pdf-onto-histogram-3" class="section level2">
 <h2>Overlay estimated pdf onto histogram</h2>
 </div>
