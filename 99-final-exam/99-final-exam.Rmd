@@ -73,7 +73,7 @@ game <- function(N){
 num<-1000
 list<-rep(NA,num)
 for (i in seq(list)){
-  list[i]<-(game(4)[1]=="goat" & game(4)[2]=="goat")
+  list[i]<-(game(4)[1]=="goat" | game(4)[2]=="goat")
 }
 mean_prob<-mean(list)
 mean_prob
@@ -196,7 +196,7 @@ hist(charge,breaks = 30,freq = FALSE,main = "Density of the class average yearly
 **A**.  What is the probability that a randomly selected class of size 30 students will have less than 10 students with zero yearly hospital charges?
 
 ```{r}
-new<-rep(NA,100)
+new<-rep(NA,10000)
 for (i in seq_along(new)){
   new[i]=as.numeric(table(hospital_charges(30)==0)['TRUE'])<10
 }
@@ -444,7 +444,7 @@ t.test(bwt1$bwt)
 
 ```{r}
 bwt2<-bwt %>% filter(smoke==0)
-out1<-rep(NA,100)
+out1<-rep(NA,10000)
 for (i in seq_along(out1)){
   smo<-sample(bwt1$bwt,length(bwt1),replace = TRUE)
   nosmo<-sample(bwt2$bwt,length(bwt2$bwt),replace=TRUE)
